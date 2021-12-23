@@ -1,0 +1,4 @@
+configuration:
+  cameras:
+    name: Cameras
+    description: List of cameras to pull images from
