@@ -13,7 +13,7 @@ from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits import parse_digits
 class Camera (threading.Thread):
-    def __init__(self, camera: dict, mqtt: Mqtt, debug_path: str):
+    def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
         self._interval = int(camera["interval"])
         self._snapshot_url = str(camera["snapshot_url"])
@@ -28,7 +28,7 @@ class Camera (threading.Thread):
         self._digits = int(camera["digits"]) if "digits" in camera else None
         self._decimals = int(camera["decimals"]) if "decimals" in camera else None
         self._ocr_key = camera["ocr_key"] if "ocr_key" in camera else None
-        self._entity_id = slugify(self._name)
+        self._entity_id = entity_id
         self._debug_path = None
         self._error_count = 0
         self._logger = logging.getLogger("%s.%s" % (__name__, self._entity_id))
@@ -39,7 +39,6 @@ class Camera (threading.Thread):
 
         if self._interval < 30: 
             raise Exception("Incorrect interval in seconds. Choose more than 30 seconds.")
-        self._mqtt.mqtt_sensor_discovery(self._entity_id, self._name, self._device_class, self._unit_of_measurement)
         
     def stop(self):
         self._stop = True
@@ -86,6 +85,9 @@ class Camera (threading.Thread):
                     self._logger.debug("Final reading: %s" % reading)
                     # send to mqtt
                     self._mqtt.mqtt_state(self._entity_id, self._current_reading)
+                    self._mqtt.mqtt_availability(self._entity_id, True)
+                    self._error_count = 0
+                elif round(reading, 0) == round(self._current_reading, 0):
                     self._mqtt.mqtt_availability(self._entity_id, True)
                     self._error_count = 0
                 else:

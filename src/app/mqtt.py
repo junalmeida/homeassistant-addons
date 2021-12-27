@@ -4,6 +4,8 @@ import time
 import traceback
 import paho.mqtt.client as mqtt
 import os
+
+from slugify import slugify
 from app.ha_api import supervisor
 from app.config import config
 
@@ -20,23 +22,26 @@ class Mqtt:
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
+
         self._cameras: list = list()
     def mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
         from app.camera import Camera
-        _LOGGER.debug("Connected to mqtt, restarting cameras")
-        self.mqtt_disconnected(client, userdata, rc)
         for cfg in config["cameras"]:
-            camera = Camera(cfg, self, config["debug_path"] if "debug_path" in config else None)
-            self._cameras.append(camera)
-            camera.start()
-        _LOGGER.debug("%s cameras running" % len(self._cameras))    
-        
+            entity_id = slugify(cfg["name"])
+            camera = next((cam for cam in self._cameras if cam._entity_id == entity_id), None)            
+            if camera is None:
+                camera = Camera(cfg, entity_id, self, config["debug_path"] if "debug_path" in config else None)
+                self._cameras.append(camera)
+                camera.start()     
+            self.mqtt_sensor_discovery(camera._entity_id, camera._name, camera._device_class, camera._unit_of_measurement) 
 
     def mqtt_disconnected(self, client, userdata, rc):        
-        for camera in self._cameras:
-            camera.stop()
-        self._cameras.clear()
+        if not self._mqtt_client.is_connected:
+            for camera in self._cameras:
+                camera.stop()
+            self._cameras.clear()
+            _LOGGER.debug("%s camera(s) running" % len(self._cameras))    
 
     def mqtt_start(self):
         while True:
@@ -72,7 +77,7 @@ class Mqtt:
             "unique_id": "%s.%s" % (device_id, entity_id),
             "device": {
                 "identifiers": device_id,
-                "manufacturer": "Marcos Junior",
+                "manufacturer": "Meter Parser",
                 "model": "Meter Parser Add-On",
                 "name": "Meter Parser",
                 "sw_version": "1.0.0" # TODO: Get from git build            
