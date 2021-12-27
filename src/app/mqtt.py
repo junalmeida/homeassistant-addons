@@ -59,37 +59,59 @@ class Mqtt:
                 _LOGGER.error("Could not connect to mqtt. Retry in 5 secs. %s" % e)
                 time.sleep(5)
     def mqtt_sensor_discovery(self, entity_id: str, name: str, device_class: str, unit_of_measurement: str):
-        topic = "%s/sensor/%s/config" % (discovery_prefix, entity_id)
         device_id = os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]
-        icon = "mdi:water"
-        if device_class == "energy":
-            icon = "mdi:flash"
-        elif device_class == "gas":
-            icon = "mdi:fire"
-        payload = {
-            "name": name, 
-            "icon": icon,
-            "unit_of_measurement": unit_of_measurement,
-            "state_class": "total_increasing",
-            "state_topic": "%s/sensor/%s/state" % (discovery_prefix, entity_id),
-            "availability_topic": "%s/sensor/%s/availability" % (discovery_prefix, entity_id),
-            "object_id": entity_id,
-            "unique_id": "%s.%s" % (device_id, entity_id),
-            "device": {
+        device = {
                 "identifiers": device_id,
                 "manufacturer": "Meter Parser",
                 "model": "Meter Parser Add-On",
                 "name": "Meter Parser",
                 "sw_version": "1.0.0" # TODO: Get from git build            
             }
+            
+        topic_sensor = "%s/sensor/%s/config" % (discovery_prefix, entity_id)
+        icon = "mdi:water"
+        if device_class == "energy":
+            icon = "mdi:flash"
+        elif device_class == "gas":
+            icon = "mdi:fire"
+
+
+        payload_sensor = {
+            "name": name, 
+            "icon": icon,
+            "unit_of_measurement": unit_of_measurement,
+            "state_class": "total_increasing",
+            "state_topic": "%s/sensor/%s/state" % (discovery_prefix, entity_id),
+            "availability_topic": "%s/sensor/%s/availability" % (discovery_prefix, entity_id),
+            "json_attributes_topic": "%s/sensor/%s/attributes" % (discovery_prefix, entity_id),
+            "object_id": entity_id,
+            "unique_id": "%s.%s" % (device_id, entity_id),
+            "device": device
         }
         if device_class != "water":
-            payload["device_class"] = device_class
-        self._mqtt_client.publish(topic, payload=json.dumps(payload).encode("utf-8"))
+            payload_sensor["device_class"] = device_class
 
-    def mqtt_state(self, entity_id: str, state):
-        topic = "%s/sensor/%s/state" % (discovery_prefix, entity_id)
+
+        topic_camera = "%s/camera/%s/config" % (discovery_prefix, entity_id)
+        payload_camera = {
+            "name": name, 
+            "topic": "%s/camera/%s/state" % (discovery_prefix, entity_id),
+            "availability_topic": "%s/camera/%s/availability" % (discovery_prefix, entity_id),
+            "json_attributes_topic": "%s/camera/%s/attributes" % (discovery_prefix, entity_id),
+            "object_id": entity_id,
+            "unique_id": "%s.%s_cam" % (device_id, entity_id),
+            "device": device
+        }
+
+        self._mqtt_client.publish(topic_sensor, payload=json.dumps(payload_sensor).encode("utf-8"))
+        self._mqtt_client.publish(topic_camera, payload=json.dumps(payload_camera).encode("utf-8"))
+
+    def mqtt_set_state(self, type:str, entity_id: str, state):
+        topic = "%s/%s/%s/state" % (discovery_prefix, type, entity_id)
         self._mqtt_client.publish(topic, payload=state)
-    def mqtt_availability(self, entity_id: str, available: bool):
-        topic = "%s/sensor/%s/availability" % (discovery_prefix, entity_id)
+    def mqtt_set_attributes(self, type:str, entity_id: str, attributes):
+        topic = "%s/%s/%s/attributes" % (discovery_prefix, type, entity_id)
+        self._mqtt_client.publish(topic, payload=json.dumps(attributes))
+    def mqtt_set_availability(self, type:str, entity_id: str, available: bool):
+        topic = "%s/%s/%s/availability" % (discovery_prefix, type, entity_id)
         self._mqtt_client.publish(topic, payload=("online" if available else "offline"))

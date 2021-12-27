@@ -9,18 +9,15 @@ arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
 arucoParams = cv2.aruco.DetectorParameters_create()
 
 
-def prepare_image(image, flip_horizontal: bool, flip_vertical: bool, entity_id:str, debug_path: str):
+def prepare_image(image, entity_id:str, send_image, debug_path: str):
     debugfile = time.strftime(entity_id + "-%Y-%m-%d_%H-%M-%S")
-    if flip_horizontal == True:
-        image = cv2.flip(image, 1)
-    if flip_vertical == True:
-        image = cv2.flip(image, 0)
 
-    # # sharpen image
-    # image = cv2.filter2D(src=image, ddepth=-1, kernel=sharpen)
-    # To grayscale
-    image_to_aruco = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = automatic_brightness_and_contrast(image)[0]
+    image = cv2.bilateralFilter(image,9,75,75)
+    image_to_aruco = image.copy()
 
+    if send_image is not None:
+        send_image(image_to_aruco)
     (corners, ids, rejected) = cv2.aruco.detectMarkers(
         image_to_aruco, arucoDict, parameters=arucoParams
     )
@@ -41,6 +38,8 @@ def prepare_image(image, flip_horizontal: bool, flip_vertical: bool, entity_id:s
             image_to_aruco, arucoDict, parameters=arucoParams
         )
         if len(corners) < 2:
+            if send_image is not None:
+                send_image(image_to_aruco)
             raise Exception("Could not find the same markers after rotating the image. This is usually a very bad quality image")
         markers = list()
         for (markerCorner, markerID) in zip(corners, ids):
@@ -61,13 +60,30 @@ def prepare_image(image, flip_horizontal: bool, flip_vertical: bool, entity_id:s
         markers.sort(key=lambda x: x.id)
         topLeft = markers[0].bottomRight
         bottomRight = markers[1].topLeft
-
+        if send_image is not None:
+            send_image(image)
         if debug_path is not None:
             cv2.imwrite(os.path.join(debug_path, "%s-aruco-in.jpg" % debugfile), image)
 
         image = crop_image(image, (topLeft[0], topLeft[1], bottomRight[0] - topLeft[0], bottomRight[1] - topLeft[1]))
 
     else:
+        for ix, rejected in enumerate(rejected):
+            marker = extractMarker(rejected, ix)
+            # draw the bounding box of the ArUCo detection
+            cv2.line(image_to_aruco, marker.topLeft, marker.topRight, (0, 0, 255), 2)
+            cv2.line(image_to_aruco, marker.topRight, marker.bottomRight, (0, 0, 255), 2)
+            cv2.line(image_to_aruco, marker.bottomRight, marker.bottomLeft, (0, 0, 255), 2)
+            cv2.line(image_to_aruco, marker.bottomLeft, marker.topLeft, (0, 0, 255), 2)
+            cX = int((marker.topLeft[0] + marker.bottomRight[0]) / 2.0)
+            cY = int((marker.topLeft[1] + marker.bottomRight[1]) / 2.0)
+            cv2.putText(image_to_aruco, "rejected",
+                        (cX - 15, cY + 15),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.8, (0, 255, 0), 2)
+            cv2.circle(image_to_aruco, (cX, cY), 4, (0, 0, 255), -1)
+        if send_image is not None:
+            send_image(image_to_aruco)
         if debug_path is not None:
             cv2.imwrite(os.path.join(debug_path, "%s-aruco-err.jpg" % debugfile), image_to_aruco)
         raise Exception("Could not find ArUco markers. Please print two markers at https://chev.me/arucogen/ and stick to the top-left and bottom-right corners of the region of interest.")
@@ -138,3 +154,47 @@ def crop_image(image, rect):
     if w < 0 or h < 0:
         raise Exception("Invalid width and height")
     return image[y: y + h, x: x + w]
+
+def automatic_brightness_and_contrast(image, clip_hist_percent=1):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate grayscale histogram
+    hist = cv2.calcHist([gray],[0],None,[256],[0,256])
+    hist_size = len(hist)
+    
+    # Calculate cumulative distribution from the histogram
+    accumulator = []
+    accumulator.append(float(hist[0]))
+    for index in range(1, hist_size):
+        accumulator.append(accumulator[index -1] + float(hist[index]))
+    
+    # Locate points to clip
+    maximum = accumulator[-1]
+    clip_hist_percent *= (maximum/100.0)
+    clip_hist_percent /= 2.0
+    
+    # Locate left cut
+    minimum_gray = 0
+    while accumulator[minimum_gray] < clip_hist_percent:
+        minimum_gray += 1
+    
+    # Locate right cut
+    maximum_gray = hist_size -1
+    while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
+        maximum_gray -= 1
+    
+    # Calculate alpha and beta values
+    alpha = 255 / (maximum_gray - minimum_gray)
+    beta = -minimum_gray * alpha
+    
+    '''
+    # Calculate new histogram with desired range and show histogram 
+    new_hist = cv2.calcHist([gray],[0],None,[256],[minimum_gray,maximum_gray])
+    plt.plot(hist)
+    plt.plot(new_hist)
+    plt.xlim([0,256])
+    plt.show()
+    '''
+
+    auto_result = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+    return (auto_result, alpha, beta)

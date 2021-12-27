@@ -66,7 +66,7 @@ def parse_digits(
         URL_API,
         data=payload,
         files={"file.jpg": imencoded.tobytes()},
-        timeout=9,
+        timeout=15,
     )
 
     if response.status_code == 200:

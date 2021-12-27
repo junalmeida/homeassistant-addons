@@ -6,9 +6,10 @@ import requests
 import numpy as np
 import cv2
 import traceback
+import base64
 from slugify import slugify
 from app.mqtt import Mqtt
-
+from app.data import data
 from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits import parse_digits
@@ -22,7 +23,7 @@ class Camera (threading.Thread):
         self._unit_of_measurement = str(camera["unit_of_measurement"]) if "unit_of_measurement" in camera else "kWh"
         self._stop = False
         self._disposed = False
-        self._current_reading = 0.0
+        self._current_reading = float(data[entity_id]) if entity_id in data else 0.0
         self._dials = int(camera["dials"]) if "dials" in camera else None
         self._dial_size = int(camera["dial_size"]) if "dial_size" in camera else 100
         self._digits = int(camera["digits"]) if "digits" in camera else None
@@ -34,8 +35,6 @@ class Camera (threading.Thread):
         self._logger = logging.getLogger("%s.%s" % (__name__, self._entity_id))
         self._mqtt = mqtt
         self._debug_path = debug_path
-        self._flip_horizontal = camera["flip_horizontal"] if "flip_horizontal" in camera else False
-        self._flip_vertical = camera["flip_vertical"] if "flip_vertical" in camera else False
 
         if self._interval < 30: 
             raise Exception("Incorrect interval in seconds. Choose more than 30 seconds.")
@@ -46,7 +45,7 @@ class Camera (threading.Thread):
         while not self._disposed:
             time.sleep(2)
 
-    def run (self):
+    def run(self):
         self._logger.info("Starting camera %s" % self._name)
         while not self._stop:
             try:
@@ -55,11 +54,22 @@ class Camera (threading.Thread):
                 while img is None:
                     try:
                         img = self.get_image()
-                    except Exception as e:
-                        self._logger.error("Could not get camera snapshot. Retry in 10 sec. %s" % e)
-                        time.sleep(10)
+                        self.send_image(img)
+                        self._mqtt.mqtt_set_availability("camera", self._entity_id, True)
 
-                img = prepare_image(img, self._flip_horizontal, self._flip_vertical, self._entity_id, self._debug_path)
+                        img = prepare_image(img, self._entity_id, self.send_image, self._debug_path)
+                        self.send_image(img)
+                        
+                    except Exception as e:
+                        img = None
+                        err = {
+                                "last_error": "Could not get camera snapshot. Retry in 10 sec. %s" % e,
+                                "last_error_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                            }
+                        self._logger.error(err)
+                        self._mqtt.mqtt_set_attributes("sensor", self._entity_id, err)
+                        time.sleep(10)
+                
                 if self._dials is not None:
                     reading = parse_dials(
                         img,
@@ -82,21 +92,27 @@ class Camera (threading.Thread):
                 if reading > 0 and reading >= self._current_reading:
 
                     self._current_reading = reading
+                    data[self._entity_id] = self._current_reading
                     self._logger.debug("Final reading: %s" % reading)
                     # send to mqtt
-                    self._mqtt.mqtt_state(self._entity_id, self._current_reading)
-                    self._mqtt.mqtt_availability(self._entity_id, True)
+                    self._mqtt.mqtt_set_state("sensor", self._entity_id, self._current_reading)
+                    self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
                 elif round(reading, 0) == round(self._current_reading, 0):
-                    self._mqtt.mqtt_availability(self._entity_id, True)
+                    self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
                 else:
                     self._error_count += 1               
             except Exception as e:
-                self._logger.error(e)
+                err = {
+                        "last_error": "%s" % e,
+                        "last_error_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                self._logger.error(err)
+                self._mqtt.mqtt_set_attributes("sensor", self._entity_id, err)
                 self._error_count += 1
             if self._error_count == 10:
-                self._mqtt.mqtt_availability(self._entity_id, False)      
+                self._mqtt.mqtt_set_availability(self._entity_id, "sensor", False)      
             self._logger.debug("Waiting %s secs for next reading." % self._interval)              
             time.sleep(self._interval)
         self._logger.warn("Camera %s is now disposed." % self._name)
@@ -111,3 +127,6 @@ class Camera (threading.Thread):
             return img
         else:
             raise Exception(req.text)
+    def send_image(self, image):
+        ret_code, jpg_buffer = cv2.imencode(".jpg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 95])     
+        self._mqtt.mqtt_set_state("camera", self._entity_id, bytes(jpg_buffer))
