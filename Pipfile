@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 requests = "*"
 paho-mqtt = "*"
+opencv-contrib-python-headless = "*"
+python-slugify = "*"
 
 [dev-packages]
 

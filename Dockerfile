@@ -11,14 +11,6 @@ RUN apt-get update \
     /var/{cache,log}/* \
     /var/lib/apt/lists/*
 
-# Build open-cv
-RUN pip3 install \
-    numpy \
-    requests \
-    opencv-contrib-python-headless \ 
-    paho-mqtt
-
-
 # Build arguments
 ARG BUILD_ARCH
 ARG BUILD_DATE
@@ -52,3 +44,4 @@ LABEL \
 # Copy root filesystem
 COPY src /src
 CMD [ "python3", "/src" ]    
+RUN pip3 install -r /src/requirements.txt

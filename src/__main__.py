@@ -1,5 +1,5 @@
-import time
-
-from app.mqtt import mqtt_start
-mqtt_start()
+from app.camera import Camera
+from app.mqtt import Mqtt
+mqtt = Mqtt()
+mqtt.mqtt_start()
 
