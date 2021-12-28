@@ -1,70 +1,71 @@
-# Home Assistant Community Add-on: Meter Parser
+<img src="meterparser/icon.png" align="right" width="128" />  
 
-[![GitHub Release][releases-shield]][releases]
-![Project Stage][project-stage-shield]
-[![License][license-shield]](LICENSE.md)
+# Home Assistant - Meter Parser AddOn
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee] ![Checks][checksbadge]
+![Last release][releasebadge] [![Hacs][hacsbadge]][hacs] [^1]
 
-![Supports armhf Architecture][armhf-shield]
-![Supports armv7 Architecture][armv7-shield]
-![Supports aarch64 Architecture][aarch64-shield]
-![Supports amd64 Architecture][amd64-shield]
-![Supports i386 Architecture][i386-shield]
+This is an addon (not HACS) to allow parse of dial and digits utility meters like water, gas, and electricity to provide energy consumption information to home assistant using a regular ip camera.
 
-[![Github Actions][github-actions-shield]][github-actions]
-![Project Maintenance][maintenance-shield]
-[![GitHub Activity][commits-shield]][commits]
+This repository is under alpha stage, so expect bugs and breaking changes.
 
-[![Sponsor Marcos via GitHub Sponsors][github-sponsors-shield]][github-sponsors]
+### Highlights of what **Meter Parser** can do
 
-## About
+* Parse Meters
+* Provide a consumption sensor of `total_increasing` state type.
+* Cheap IP or PoE cameras must do
+
+### Potential Downsides
+
+* Positioning a camera and getting a good image could be difficult.
+* Could be hard to setup calibration parameters.
+* To recognize digits, this project relys on OCR services on the internet. I am open to 
+suggestions on better local libraries to scan digits. Recognizing dials is simple and local,
+no internet connection or APIs are required.
+
+## Installation through Supervisor
+
+1. Add [https://github.com/junalmeida/homeassistant-addons](https://github.com/junalmeida/homeassistant-addons) as a custom
+   repository on supervisor repositories.
+2. Click install under "Meter Parser" in the Add-on Store
+3. If you have native MQTT enabled, supervisor may provide configuration. Otherwise, setup mqtt server, user and password.
+3. Setup the meter camera and start the add-on
+4. Start the add-on
 
 
-## Support
+## Usage
 
-## Authors & contributors
+* Entities will show up as `sensor.<friendly name>`, for example (`sensor.water_meter`).
+```yaml
+# Add-on configuration example
+cameras:
+- snapshot_url: http://192.168.100.153/snapshot.jpg
+  name: Water Meter
+  interval: 60 # secondscameras:
+  ocr_key: "123456789" # required for digits, grab a key at https://ocr.space/ (watch for rate limits)
+  digits: 6 # required for digits, number of expected total digits (including decimals)
+  decimals: 1 # optional number of decimals
+  device_class: water # energy, gas or water
+  unit_of_measurement: m³ # m³, ft³, kWh, MWh, Wh, gal, L
+``` 
 
-The original setup of this repository is by [Marcos Junior][junalmeida].
+## Reporting an Issue
 
-## License
+1. File an issue in this Github Repository, add logs and if possible an image of your meter.
 
-MIT License
 
-Copyright (c) 2017-2021 Marcos Junior
+## Credits
+🎉 [Dial Parser](custom_components/meter_parser/parser_dial.py) code is based on the awesome work of [@mirogta](https://github.com/mirogta), please [support his work](https://github.com/mirogta/dial-meter-reader-opencv-py).
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
-[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
-[amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
-[armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
-[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
-[commits-shield]: https://img.shields.io/github/commit-activity/y/junalmeida/ha-meterparser-addon.svg
-[commits]: https://github.com/junalmeida/ha-meterparser-addon/commits/main
-[contributors]: https://github.com/junalmeida/ha-meterparser-addon/graphs/contributors
-[junalmeida]: https://github.com/junalmeida
-[github-actions-shield]: https://github.com/junalmeida/ha-meterparser-addon/workflows/CI/badge.svg
-[github-actions]: https://github.com/junalmeida/ha-meterparser-addon/actions
-[github-sponsors-shield]: https://img.shields.io/github/sponsors/junalmeida
-[github-sponsors]: https://github.com/sponsors/junalmeida
-[i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2021.svg
-[project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
-[releases-shield]: https://img.shields.io/github/release/junalmeida/ha-meterparser-addon.svg
-[releases]: https://github.com/junalmeida/ha-meterparser-addon/releases
+[^1]: Icons made by [Smashicons][iconcredit] from [flaticon.com][iconcreditsite]
 
-[license-shield]: https://img.shields.io/github/license/junalmeida/ha-meterparser-addon
+[iconcredit]: https://www.flaticon.com/authors/smashicons
+[iconcreditsite]: https://www.flaticon.com/
+[buymecoffee]: https://www.buymeacoffee.com/junalmeida
+[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange?style=plastic&logo=buymeacoffee
+[checksbadge]:https://img.shields.io/github/checks-status/junalmeida/ha-meterparser/master?style=plastic
+[releasebadge]:https://img.shields.io/github/v/release/junalmeida/ha-meterparser?style=plastic&display_name=tag&include_prereleases
+[hacs]:https://github.com/hacs/integration
+[hacsbadge]:https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic

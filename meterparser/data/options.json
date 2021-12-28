@@ -1,0 +1,22 @@
+{
+    "cameras": [
+        {
+            "name": "Water Meter",
+            "snapshot_url": "http://192.168.100.153/snapshot.jpg",
+            "interval": 30,
+            "unit_of_measurement": "m³",
+            "digits": 6,
+            "decimals": 1,
+            "ocr_key": "890a9b9b8388957",
+            "device_class": "water"
+        }
+    ],
+    "mqtt": {
+        "host": "192.168.100.1",
+        "port": 1883,
+        "username": "mqtt",
+        "password": "mqtt"
+    },
+    "log_level": "DEBUG",
+    "debug_path": "C:\\Projects\\personal\\junalmeida\\ha-meterparser-addon\\data\\debug"
+}
