@@ -14,7 +14,7 @@ arch:
   - i386
 options:
   cameras:
-    - snapshot_url: http://192.168.1.10/cam.mjpeg
+    - snapshot_url: http://192.168.100.153/snapshot.jpg
       name: Water Meter
       interval: 60 # seconds
 schema:
