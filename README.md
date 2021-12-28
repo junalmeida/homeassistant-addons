@@ -2,7 +2,7 @@
 
 # Home Assistant - Meter Parser AddOn
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] ![Checks][checksbadge]
-![Last release][releasebadge] [![Hacs][hacsbadge]][hacs] [^1]
+![Last release][releasebadge]
 
 This is an addon (not HACS) to allow parse of dial and digits utility meters like water, gas, and electricity to provide energy consumption information to home assistant using a regular ip camera.
 
@@ -65,7 +65,7 @@ cameras:
 [iconcreditsite]: https://www.flaticon.com/
 [buymecoffee]: https://www.buymeacoffee.com/junalmeida
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange?style=plastic&logo=buymeacoffee
-[checksbadge]:https://img.shields.io/github/checks-status/junalmeida/ha-meterparser/master?style=plastic
-[releasebadge]:https://img.shields.io/github/v/release/junalmeida/ha-meterparser?style=plastic&display_name=tag&include_prereleases
-[hacs]:https://github.com/hacs/integration
-[hacsbadge]:https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic
+[checksbadge]:https://img.shields.io/github/checks-status/junalmeida/homeassistant-addons/master?style=plastic
+[releasebadge]:https://img.shields.io/github/v/release/junalmeida/homeassistant-addons?style=plastic&display_name=tag&include_prereleases
+<!-- [hacs]:https://github.com/hacs/integration
+[hacsbadge]:https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic -->
