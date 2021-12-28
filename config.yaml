@@ -21,14 +21,14 @@ schema:
   mqtt:
     host: str
     username: str
-    password: stw
+    password: password
     port: int
   cameras:
     - snapshot_url: str
       name: str
-      interval: int(1,260)
-      unit_of_measurement: list(m³|kWh|ft³|L|mL|gal)
-      device_class: list(water|energy|gas)
-      digits: int(0, 10)
-      decimals: int(0, 3)
+      interval: "int(1, 260)"
+      unit_of_measurement: "list(m³|kWh|ft³|L|mL|gal)"
+      device_class: "list(water|energy|gas)"
+      digits: "int(0, 10)"
+      decimals: "int(0, 3)"
       ocr_key: str
