@@ -29,6 +29,9 @@ schema:
       interval: "int(1,260)"
       unit_of_measurement: "list(m³|kWh|ft³|L|mL|gal)?"
       device_class: "list(water|energy|gas)?"
+      dials:
+        - "str?"
       digits: "int(0,10)?"
       decimals: "int(0,3)?"
       ocr_key: str?
+      dial_size: "int(0,300)?"
