@@ -24,10 +24,10 @@ class Camera (threading.Thread):
         self._stop = False
         self._disposed = False
         self._current_reading = float(data[entity_id]) if entity_id in data else 0.0
-        self._dials = int(camera["dials"]) if "dials" in camera else None
+        self._dials = camera["dials"] if "dials" in camera else []
         self._dial_size = int(camera["dial_size"]) if "dial_size" in camera else 100
-        self._digits = int(camera["digits"]) if "digits" in camera else None
-        self._decimals = int(camera["decimals"]) if "decimals" in camera else None
+        self._digits = int(camera["digits"]) if "digits" in camera else 0
+        self._decimals = int(camera["decimals"]) if "decimals" in camera else 0
         self._ocr_key = camera["ocr_key"] if "ocr_key" in camera else None
         self._entity_id = entity_id
         self._debug_path = None
@@ -35,7 +35,8 @@ class Camera (threading.Thread):
         self._logger = logging.getLogger("%s.%s" % (__name__, self._entity_id))
         self._mqtt = mqtt
         self._debug_path = debug_path
-
+        if self._digits == 0 and len(self._dials) == 0:
+            raise Exception("Incorrect setup. Set this camera to use either digits or dials.")
         if self._interval < 30: 
             raise Exception("Incorrect interval in seconds. Choose more than 30 seconds.")
         
