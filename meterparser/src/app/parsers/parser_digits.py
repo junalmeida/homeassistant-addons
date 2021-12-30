@@ -88,7 +88,6 @@ def parse_digits(
 
     raise Exception(response.text)
 
-
 def parse_result(
     ocr: str, digits_count: int, decimals_count: int, entity_id: str
 ) -> float:
