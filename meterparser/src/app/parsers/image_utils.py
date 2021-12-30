@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import math
 from dataclasses import dataclass
-arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
+arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
 
 

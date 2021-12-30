@@ -13,6 +13,7 @@ from app.data import data
 from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits import parse_digits
+import math
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
@@ -30,7 +31,6 @@ class Camera (threading.Thread):
         self._decimals = int(camera["decimals"]) if "decimals" in camera else 0
         self._ocr_key = camera["ocr_key"] if "ocr_key" in camera else None
         self._entity_id = entity_id
-        self._debug_path = None
         self._error_count = 0
         self._logger = logging.getLogger("%s.%s" % (__name__, self._entity_id))
         self._mqtt = mqtt
@@ -71,7 +71,7 @@ class Camera (threading.Thread):
                         self._mqtt.mqtt_set_attributes("sensor", self._entity_id, err)
                         time.sleep(10)
                 
-                if self._dials is not None:
+                if self._dials is not None and len(self._dials) > 0:
                     reading = parse_dials(
                         img,
                         readout=self._dials,
@@ -90,7 +90,9 @@ class Camera (threading.Thread):
                         self._entity_id,
                         debug_path=self._debug_path,
                     )
-                if reading > 0 and reading >= self._current_reading:
+                else:
+                    raise Exception("Invalid configuration. Set either dials or digits to scan.")
+                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < self._current_reading * 2):
 
                     self._current_reading = reading
                     data[self._entity_id] = self._current_reading
@@ -99,10 +101,11 @@ class Camera (threading.Thread):
                     self._mqtt.mqtt_set_state("sensor", self._entity_id, self._current_reading)
                     self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
-                elif round(reading, 0) == round(self._current_reading, 0):
+                elif reading > 0 and math.floor(reading) == math.floor(self._current_reading, 0):
                     self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
                 else:
+                    self._logger.error("Invalid reading: %s, previous reading: %s. Value could be too high?" % (reading, self._current_reading))
                     self._error_count += 1               
             except Exception as e:
                 err = {

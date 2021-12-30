@@ -8,7 +8,7 @@
             "name": "Python",
             "type": "python",
             "request": "launch",
-            "program": "src",
+            "program": "meterparser/src",
             "console": "internalConsole"
         }
     ]

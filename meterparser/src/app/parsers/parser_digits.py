@@ -20,7 +20,7 @@ import time
 import requests
 import cv2
 import numpy as np
-import re
+import regex as re
 
 _LOGGER = None
 URL_API = "https://api.ocr.space/parse/image"
@@ -108,23 +108,23 @@ def parse_result(
                 .replace("o", "0")
                 .replace("O", "0")
             )
-            regex = re.search("[0-9]{%s}" % (digits_count), x_str)
-            if regex is None or regex.group(0) is None:
+            regex = re.findall("[0-9]{%s}" % (digits_count), x_str, overlapped = True)
+            if regex is None or len(regex) == 0:
                 # last digit could be in a middle of a spin, so ocr may detect H.
                 # I believe it is safe to replace decimals with zeroes, and then
                 # repeat last decimal reading later.
-                regex = re.search("[0-9]{%s}" % (digits_count - decimals_count), x_str)
-                if regex is not None and regex.group(0) is not None:
-                    reading = float(regex.group(0) + ("0" * decimals_count))
+                regex = re.findall("[0-9]{%s}" % (digits_count - decimals_count), x_str, overlapped = True)
+                if regex is not None and len(regex) > 0:
+                    reading = float(regex[-1] + ("0" * decimals_count))
             else:
-                reading = float(regex.group(0))
+                reading = float(regex[-1])
 
     if reading == 0:
-        _LOGGER.error("Not a valid OCR result: %s" % ocr)
+        _LOGGER.error("Not a valid OCR result: %s" % ocr.replace("\n", "\\n"))
     else:
         if decimals_count > 0:
             reading = reading / float(10 ** decimals_count)
         _LOGGER.debug(
-            "%s: Final reading '%s' from OCR '%s'" % (entity_id, reading, ocr)
+            "%s: Final reading '%s' from OCR '%s'" % (entity_id, reading, ocr.replace("\n", "\\n"))
         )
     return reading
