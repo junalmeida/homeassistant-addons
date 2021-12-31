@@ -22,5 +22,5 @@ def supervisor(param: str):
             return result_json["data"] if "data" in result_json else None
 
         except Exception as e:
-            _LOGGER.error("Could not connect to supervisor. Retry in 5 secs. %s" % e)
+            _LOGGER.error("Could not connect to supervisor: %s. Retry in 5 secs." % e)
             time.sleep(5)

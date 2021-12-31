@@ -56,7 +56,7 @@ class Mqtt:
                 self._mqtt_client.loop_forever()
                 return
             except Exception as e:
-                _LOGGER.error("Could not connect to mqtt. Retry in 5 secs. %s" % e)
+                _LOGGER.error("Could not connect to mqtt: %s. Retry in 5 secs." % e)
                 time.sleep(5)
     def mqtt_sensor_discovery(self, entity_id: str, name: str, device_class: str, unit_of_measurement: str):
         device_id = os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]
