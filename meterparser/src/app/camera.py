@@ -101,7 +101,7 @@ class Camera (threading.Thread):
                     self._mqtt.mqtt_set_state("sensor", self._entity_id, self._current_reading)
                     self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
-                elif reading > 0 and math.floor(reading) == math.floor(self._current_reading, 0):
+                elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
                     self._mqtt.mqtt_set_availability("sensor", self._entity_id, True)
                     self._error_count = 0
                 else:
