@@ -4,6 +4,7 @@ import time
 import traceback
 import paho.mqtt.client as mqtt
 import os
+import threading
 
 from slugify import slugify
 from app.ha_api import supervisor
@@ -23,25 +24,25 @@ class Mqtt:
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
 
-        self._cameras: list = list()
+        self.cameras: list = list()
     def mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
         from app.camera import Camera
         for cfg in config["cameras"]:
             entity_id = slugify(cfg["name"])
-            camera = next((cam for cam in self._cameras if cam._entity_id == entity_id), None)            
+            camera = next((cam for cam in self.cameras if cam._entity_id == entity_id), None)            
             if camera is None:
                 camera = Camera(cfg, entity_id, self, config["debug_path"] if "debug_path" in config else None)
-                self._cameras.append(camera)
+                self.cameras.append(camera)
                 camera.start()     
-            self.mqtt_sensor_discovery(camera._entity_id, camera._name, camera._device_class, camera._unit_of_measurement) 
+            self.mqtt_sensor_discovery(camera.entity_id, camera.name, camera._device_class, camera._unit_of_measurement) 
 
     def mqtt_disconnected(self, client, userdata, rc):        
         if not self._mqtt_client.is_connected:
-            for camera in self._cameras:
+            for camera in self.cameras:
                 camera.stop()
-            self._cameras.clear()
-            _LOGGER.debug("%s camera(s) running" % len(self._cameras))    
+            self.cameras.clear()
+            _LOGGER.debug("%s camera(s) running" % len(self.cameras))    
 
     def mqtt_start(self):
         while True:

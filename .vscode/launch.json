@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "meterparser/src",
-            "console": "internalConsole"
+            "console": "integratedTerminal"
         }
     ]
 }

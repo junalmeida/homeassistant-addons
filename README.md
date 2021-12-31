@@ -59,6 +59,20 @@ mqtt:
 log_level: INFO # DEBUG, INFO, WARN, ERROR
 ``` 
 
+If you change your meter or for some other reason need to reset the previous control value, use the home assistant service `stdin` like below
+
+```yaml
+service: hassio.addon_stdin
+data:
+  addon: NNNaaNNN_meter-parser
+  input: "list"
+
+service: hassio.addon_stdin
+data:
+  addon: NNNaaNNN_meter-parser
+  input: "reset Water Meter"
+```
+
 ## Reporting an Issue
 
 1. File an issue in this Github Repository, add logs and if possible an image of your meter.
