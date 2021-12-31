@@ -108,7 +108,9 @@ jobs:
             --addon
 
   release:
-    needs: init
+    needs:
+      - init
+      - build
     runs-on: ubuntu-latest
     if: needs.init.outputs.changed == 'true'
     name: Create release for ${{ matrix.addon }} add-on
@@ -116,6 +118,8 @@ jobs:
       matrix:
         addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2.4.0
       - name: Get information
         id: info
         uses: home-assistant/actions/helpers/info@master
