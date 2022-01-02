@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.0.4]
+- Save image to PNG for OCR.
+
 ## [1.0.0.3]
 - Add `stdin` input to list and reset the control value. 
 

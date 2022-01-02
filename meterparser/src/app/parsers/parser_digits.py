@@ -58,14 +58,14 @@ def parse_digits(
     if debug_path is not None:
         cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), frame)
 
-    payload = {"apikey": ocr_key, "language": "eng", "scale": "true", "OCREngine": "2"}
+    payload = {"apikey": ocr_key, "language": "eng", "scale": "true", "OCREngine": "2", "filetype": "PNG"}
 
-    _LOGGER.debug("%s: OCR image: %s" % (entity_id, URL_API))
-    imencoded = cv2.imencode(".jpg", frame)[1]
+    _LOGGER.debug("OCR image: %s, payload=%s" % (URL_API, payload))
+    imencoded = cv2.imencode(".png", frame)[1]
     response = requests.post(
         URL_API,
         data=payload,
-        files={"file.jpg": imencoded.tobytes()},
+        files={"file.png": imencoded.tobytes()},
         timeout=15,
     )
 
