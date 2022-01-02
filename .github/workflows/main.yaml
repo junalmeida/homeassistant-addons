@@ -125,14 +125,20 @@ jobs:
         uses: home-assistant/actions/helpers/info@master
         with:
           path: "./${{ matrix.addon }}"
+      - uses: bluwy/substitute-string-action@v1
+        name: Get version
+        id: version
+        with:
+          _input-text: ${{ steps.info.outputs.version }}
+          \": ""
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: "${{ matrix.addon }}-v${{ steps.info.outputs.version }}"
-          release_name: "${{ matrix.addon }} ${{ steps.info.outputs.version }}"
+          tag_name: "${{ matrix.addon }}-v${{ steps.version.outputs.result }}"
+          release_name: "${{ matrix.addon }} ${{ steps.version.outputs.result }}"
           body: |
             Changes in this Release
             ${{ github.event.head_commit.message }}
