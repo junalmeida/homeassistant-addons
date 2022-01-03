@@ -47,11 +47,11 @@ class Mqtt:
     def mqtt_start(self):
         while True:
             try:
-                _LOGGER.debug("Connecting to mqtt...")    
                 username = str(self._mqtt_config["username"])
                 password = str(self._mqtt_config["password"])
                 host = str(self._mqtt_config["host"])
                 port = int(self._mqtt_config["port"])
+                _LOGGER.debug("Connecting to mqtt %s..." % host)    
                 self._mqtt_client.username_pw_set(username=username,password=password)
                 self._mqtt_client.connect(host, port)
                 self._mqtt_client.loop_forever()

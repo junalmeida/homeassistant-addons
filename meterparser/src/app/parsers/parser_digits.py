@@ -21,9 +21,9 @@ import requests
 import cv2
 import numpy as np
 import regex as re
+# import pytesseract
 
-_LOGGER = None
-URL_API = "https://api.ocr.space/parse/image"
+_LOGGER = logging.getLogger(__name__)
 
 
 def parse_digits(
@@ -58,6 +58,31 @@ def parse_digits(
     if debug_path is not None:
         cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), frame)
 
+    reading = float(0) # ocr_tesseract(frame, digits_count, decimals_count, entity_id)
+    if reading == 0:
+        reading = ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id)
+    return reading
+
+# # tesseract code for when we have good trained data
+# def ocr_tesseract(frame, digits_count, decimals_count, entity_id):
+#     reading = 0
+#     try:
+#         _LOGGER.debug("Sending frame to tesseract %s" % (pytesseract.get_tesseract_version()))
+        
+#         text = pytesseract.image_to_string(frame, lang="digits_comma", config="--psm 7 -c tessedit_char_whitelist=0123456789", timeout=15)
+#         reading = parse_result(
+#                 text,
+#                 digits_count,
+#                 decimals_count,
+#                 entity_id,
+#             )
+#     except Exception as e:
+#         _LOGGER.debug("Error while OCR with tesseract: %s" % e)
+#     return reading
+    
+
+URL_API = "https://api.ocr.space/parse/image"
+def ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id):
     payload = {"apikey": ocr_key, "language": "eng", "scale": "true", "OCREngine": "2", "filetype": "PNG"}
 
     _LOGGER.debug("OCR image: %s, payload=%s" % (URL_API, payload))
@@ -88,6 +113,7 @@ def parse_digits(
 
     raise Exception(response.text)
 
+
 def parse_result(
     ocr: str, digits_count: int, decimals_count: int, entity_id: str
 ) -> float:
@@ -106,6 +132,7 @@ def parse_result(
                 .replace("\\", "")
                 .replace("o", "0")
                 .replace("O", "0")
+                .replace("T", "1")
             )
             regex = re.findall("[0-9]{%s}" % (digits_count), x_str, overlapped = True)
             if regex is None or len(regex) == 0:

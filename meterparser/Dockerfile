@@ -1,16 +1,4 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base/amd64:5.2.2
-# hadolint ignore=DL3006
-FROM ${BUILD_FROM}
-
-# Setup base
-RUN apt-get update \ 
-    && apt-get install -y --no-install-recommends \
-    python3-pip \
-    && rm -fr \
-    /tmp/* \
-    /var/{cache,log}/* \
-    /var/lib/apt/lists/*
-
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base/amd64:5.2.2 
 # Build arguments
 ARG BUILD_ARCH
 ARG BUILD_DATE
@@ -19,6 +7,28 @@ ARG BUILD_NAME
 ARG BUILD_REF
 ARG BUILD_REPOSITORY
 ARG BUILD_VERSION
+
+# 5.2.2 = bullseye
+# hadolint ignore=DL3006
+FROM ${BUILD_FROM}
+
+# Copy root filesystem
+COPY src /src
+# Setup base
+# RUN # apt-get update && apt-get install -y --no-install-recommends gnupg2 \
+# && curl -s https://notesalexp.org/debian/alexp_key.asc | gpg --dearmor > /usr/share/keyrings/tesseract-archive-keyring.gpg \
+# && echo "deb [signed-by=/usr/share/keyrings/tesseract-archive-keyring.gpg] https://notesalexp.org/tesseract-ocr5/bullseye/ bullseye main" >> /etc/apt/sources.list.d/tesseract.list \
+# && apt-get update \ 
+RUN apt-get install -y --no-install-recommends \
+    python3-pip \
+    tesseract-ocr \
+    && rm -fr \
+    /tmp/* \
+    /var/{cache,log}/* \
+    /var/lib/apt/lists/* \
+    && pip3 install -r /src/requirements.txt
+
+
 
 # Labels
 LABEL \
@@ -41,7 +51,4 @@ LABEL \
     org.opencontainers.image.version=${BUILD_VERSION}
 
 
-# Copy root filesystem
-COPY src /src
 CMD [ "python3", "/src" ]    
-RUN pip3 install -r /src/requirements.txt
