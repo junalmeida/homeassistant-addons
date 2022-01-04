@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Add SIGINT logic and refactorings
 - Set qos
 - Rewrite topic to allow concurrent instances.
 - Send current value to sensor on intervals
