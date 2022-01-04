@@ -126,6 +126,7 @@ jobs:
         with:
           path: "./${{ matrix.addon }}"
       - name: Get version
+        id: version
         run: |
           version="${{ steps.info.outputs.version }}"
           version="${version%\"}"

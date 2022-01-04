@@ -23,6 +23,7 @@ class Mqtt:
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
+        self._mqtt_client.on_publish = self.mqtt_publish
 
         self.cameras: list = list()
         self.device_id = slugify((os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]).lower())
@@ -42,15 +43,17 @@ class Mqtt:
             if camera is None:
                 camera = Camera(cfg, entity_id, self, config["debug_path"] if "debug_path" in config else None)
                 self.cameras.append(camera)
-                camera.start()     
-            self.mqtt_sensor_discovery(camera.entity_id, camera.name, camera._device_class, camera._unit_of_measurement) 
+                camera.start()
+                self.mqtt_sensor_discovery(camera.entity_id, camera.name, camera._device_class, camera._unit_of_measurement) 
 
     def mqtt_disconnected(self, client, userdata, rc):        
-        if not self._mqtt_client.is_connected:
+        if not self._mqtt_client.is_connected():
             for camera in self.cameras:
                 camera.stop()
             self.cameras.clear()
             _LOGGER.debug("%s camera(s) running" % len(self.cameras))    
+    def mqtt_publish(self, client, userdata, mid):
+        _LOGGER.debug("Message #%s delivered to %s" % (mid, client._host))
 
     def mqtt_start(self):
         while True:
@@ -101,17 +104,20 @@ class Mqtt:
             "device": self.device
         }
 
-        self._mqtt_client.publish(topic_sensor, payload=json.dumps(payload_sensor).encode("utf-8"))
-        self._mqtt_client.publish(topic_camera, payload=json.dumps(payload_camera).encode("utf-8"))
+        self._mqtt_client.publish(topic_sensor, payload=json.dumps(payload_sensor), qos=2)
+        self._mqtt_client.publish(topic_camera, payload=json.dumps(payload_camera), qos=2)
 
     def mqtt_set_state(self, type:str, entity_id: str, state):
         topic = "%s/%s/%s/%s/state" % (discovery_prefix, type, self.device_id, entity_id)
-        self._mqtt_client.publish(topic, payload=state)
+        result = self._mqtt_client.publish(topic, payload=state, qos=2)
+        _LOGGER.debug("State #%s scheduled to %s=%s" % (result.mid, entity_id, state))
 
     def mqtt_set_attributes(self, type:str, entity_id: str, attributes):
         topic = "%s/%s/%s/%s/attributes" % (discovery_prefix, type, self.device_id, entity_id)
-        self._mqtt_client.publish(topic, payload=json.dumps(attributes))
+        result = self._mqtt_client.publish(topic, payload=json.dumps(attributes), qos=2)
+        _LOGGER.debug("Attributes #%s scheduled to %s" % (result.mid, entity_id))
 
     def mqtt_set_availability(self, type:str, entity_id: str, available: bool):
         topic = "%s/%s/%s/%s/availability" % (discovery_prefix, type, self.device_id, entity_id)
-        self._mqtt_client.publish(topic, payload=("online" if available else "offline"))
+        result = self._mqtt_client.publish(topic, payload=("online" if available else "offline"), qos=2)
+        _LOGGER.debug("Availability #%s scheduled to %s=%s" % (result.mid, entity_id, available))
