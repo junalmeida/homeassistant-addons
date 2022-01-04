@@ -17,12 +17,12 @@ import math
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
+        self._wait = threading.Event()
         self._interval = int(camera["interval"])
         self._snapshot_url = str(camera["snapshot_url"])
         self.name = str(camera["name"])
         self._device_class = str(camera["device_class"]) if "device_class" in camera else "energy"
         self._unit_of_measurement = str(camera["unit_of_measurement"]) if "unit_of_measurement" in camera else "kWh"
-        self._stop = False
         self._disposed = False
         self._current_reading = float(data[entity_id]) if entity_id in data else 0.0
         self._dials = camera["dials"] if "dials" in camera else []
@@ -41,19 +41,17 @@ class Camera (threading.Thread):
             raise Exception("Incorrect interval in seconds. Choose more than 30 seconds.")
         
     def stop(self):
-        self._stop = True
-        self._logger.warn("Stopping camera...")
-        while not self._disposed:
-            time.sleep(2)
+        self._wait.set()
+        self._logger.warn("Stopping %s camera..." % self.entity_id)
 
     def run(self):
         self._logger.info("Starting camera %s" % self.name)
-        while not self._stop:
+        while not self._wait.is_set():
             try:
                 reading = 0.0
                 img = None
                 image_error = 0
-                while img is None:
+                while img is None and not self._wait.is_set():
                     try:
                         img = self.get_image()
                         self.send_image(img)
@@ -73,7 +71,7 @@ class Camera (threading.Thread):
                         if image_error > 5:
                             self._mqtt.mqtt_set_availability("camera", self.entity_id, False) 
                             raise e
-                        time.sleep(10)
+                        self._wait.wait(10)
                 
                 if self._dials is not None and len(self._dials) > 0:
                     reading = parse_dials(
@@ -122,7 +120,7 @@ class Camera (threading.Thread):
                 # send to mqtt
                 self._mqtt.mqtt_set_state("sensor", self.entity_id, self._current_reading)
             self._logger.debug("Waiting %s secs for next reading." % self._interval)              
-            time.sleep(self._interval)
+            self._wait.wait(self._interval)
         self._logger.warn("Camera %s is now disposed." % self.name)
         self._disposed = True
 

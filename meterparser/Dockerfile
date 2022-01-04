@@ -14,23 +14,7 @@ FROM ${BUILD_FROM}
 
 # Copy root filesystem
 COPY src /src
-# Setup base
-# RUN # apt-get update && apt-get install -y --no-install-recommends gnupg2 \
-# && curl -s https://notesalexp.org/debian/alexp_key.asc | gpg --dearmor > /usr/share/keyrings/tesseract-archive-keyring.gpg \
-# && echo "deb [signed-by=/usr/share/keyrings/tesseract-archive-keyring.gpg] https://notesalexp.org/tesseract-ocr5/bullseye/ bullseye main" >> /etc/apt/sources.list.d/tesseract.list \
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    python3-pip \
-    #    tesseract-ocr \
-    && pip3 install -r /src/requirements.txt \
-    && rm -fr \
-    /tmp/* \
-    /var/{cache,log}/* \
-    /var/lib/apt/lists/* 
-
-
-
+RUN /src/setup.sh
 
 # Labels
 LABEL \
@@ -53,4 +37,4 @@ LABEL \
     org.opencontainers.image.version=${BUILD_VERSION}
 
 
-CMD [ "python3", "/src" ]    
+CMD python3 /src

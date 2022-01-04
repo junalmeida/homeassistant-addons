@@ -46,6 +46,12 @@ class Mqtt:
                 camera.start()
                 self.mqtt_sensor_discovery(camera.entity_id, camera.name, camera._device_class, camera._unit_of_measurement) 
 
+    def mqtt_stop(self):
+        for camera in self.cameras:
+            camera.stop()
+        self._mqtt_client.disconnect()
+        self._mqtt_client.loop_stop(force=True)
+
     def mqtt_disconnected(self, client, userdata, rc):        
         if not self._mqtt_client.is_connected():
             for camera in self.cameras:
