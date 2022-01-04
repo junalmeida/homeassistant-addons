@@ -125,12 +125,14 @@ jobs:
         uses: home-assistant/actions/helpers/info@master
         with:
           path: "./${{ matrix.addon }}"
-      - uses: bluwy/substitute-string-action@v1
-        name: Get version
-        id: version
-        with:
-          _input-text: ${{ steps.info.outputs.version }}
-          \": ""
+      - name: Get version
+        run: |
+          version="${{ steps.info.outputs.version }}"
+          version="${version%\"}"
+          version="${version#\"}"
+          echo $version
+          echo "::set-output name=result::$version"
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
