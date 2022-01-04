@@ -30,7 +30,7 @@ class Mqtt:
         from app.camera import Camera
         for cfg in config["cameras"]:
             entity_id = slugify(cfg["name"])
-            camera = next((cam for cam in self.cameras if cam._entity_id == entity_id), None)            
+            camera = next((cam for cam in self.cameras if cam.entity_id == entity_id), None)            
             if camera is None:
                 camera = Camera(cfg, entity_id, self, config["debug_path"] if "debug_path" in config else None)
                 self.cameras.append(camera)
