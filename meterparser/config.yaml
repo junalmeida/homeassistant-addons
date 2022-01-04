@@ -1,5 +1,5 @@
 name: Meter Parser
-version: 1.0.0.5
+version: 1.0.0.6
 slug: meter-parser
 description: Read meter needles and numbers from a camera snapshot.
 url: https://github.com/junalmeida/homeassistant-addons/meterparser

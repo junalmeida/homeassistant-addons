@@ -19,7 +19,9 @@ class Service(threading.Thread):
             line = line.split()
             if "reset" in line and len(line) > 1:
                 line.pop(0)
-                self.reset(" ".join(line))
+                if line[-1].isnumeric():
+                    value = float(line.pop(len(line) - 1))
+                self.reset(" ".join(line), value)
             elif "list" in line:
                 self.list()
             else:
@@ -31,10 +33,10 @@ class Service(threading.Thread):
             for cam in self.cameras:    
                 print("%s (%s)" % (cam.name, cam.entity_id))
 
-    def reset(self, meter: str):
+    def reset(self, meter: str, value: float):
         for cam in self.cameras:
             if cam.name == meter or cam.entity_id == meter:
-                print("Resetting %s (%s) to 0" % (cam.name, cam.entity_id))
-                data[cam.entity_id] = 0
+                print("Resetting %s (%s) to %d" % (cam.name, cam.entity_id, value))
+                data[cam.entity_id] = float(value)
                 return
         print("Could not find %s" % meter, file=sys.stderr)

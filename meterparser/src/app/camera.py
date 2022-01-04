@@ -52,11 +52,11 @@ class Camera (threading.Thread):
             try:
                 reading = 0.0
                 img = None
+                image_error = 0
                 while img is None:
                     try:
                         img = self.get_image()
                         self.send_image(img)
-                        self._mqtt.mqtt_set_availability("camera", self.entity_id, True)
 
                         img = prepare_image(img, self.entity_id, self.send_image, self._debug_path)
                         self.send_image(img)
@@ -67,8 +67,12 @@ class Camera (threading.Thread):
                                 "last_error": "Could not get or process camera snapshot: %s. Retry in 10 sec." % e,
                                 "last_error_at": time.strftime("%Y-%m-%d %H:%M:%S")
                             }
+                        image_error += 1
                         self._logger.error(err["last_error"])
                         self._mqtt.mqtt_set_attributes("sensor", self.entity_id, err)
+                        if image_error > 5:
+                            self._mqtt.mqtt_set_availability("camera", self.entity_id, False) 
+                            raise e
                         time.sleep(10)
                 
                 if self._dials is not None and len(self._dials) > 0:
@@ -97,12 +101,9 @@ class Camera (threading.Thread):
                     self._current_reading = reading
                     data[self.entity_id] = self._current_reading
                     self._logger.debug("Final reading: %s" % reading)
-                    # send to mqtt
-                    self._mqtt.mqtt_set_state("sensor", self.entity_id, self._current_reading)
-                    self._mqtt.mqtt_set_availability("sensor", self.entity_id, True)
+                    
                     self._error_count = 0
                 elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
-                    self._mqtt.mqtt_set_availability("sensor", self.entity_id, True)
                     self._error_count = 0
                 else:
                     self._logger.error("Invalid reading: %s, previous reading: %s. Value could be too high or too low?" % (reading, self._current_reading))
@@ -115,8 +116,11 @@ class Camera (threading.Thread):
                 self._logger.error(err["last_error"])
                 self._mqtt.mqtt_set_attributes("sensor", self.entity_id, err)
                 self._error_count += 1
-            if self._error_count == 10:
-                self._mqtt.mqtt_set_availability(self.entity_id, "sensor", False)      
+
+            self._mqtt.mqtt_set_availability("sensor", self.entity_id, self._error_count < 10)      
+            if self._error_count < 10 and self._current_reading > 0:
+                # send to mqtt
+                self._mqtt.mqtt_set_state("sensor", self.entity_id, self._current_reading)
             self._logger.debug("Waiting %s secs for next reading." % self._interval)              
             time.sleep(self._interval)
         self._logger.warn("Camera %s is now disposed." % self.name)
@@ -133,4 +137,6 @@ class Camera (threading.Thread):
             raise Exception(req.text)
     def send_image(self, image):
         ret_code, jpg_buffer = cv2.imencode(".jpg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 95])     
+        
+        self._mqtt.mqtt_set_availability("camera", self.entity_id, True) 
         self._mqtt.mqtt_set_state("camera", self.entity_id, bytes(jpg_buffer))
