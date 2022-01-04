@@ -8,6 +8,12 @@ This is a Home Assistant AddOn (not HACS) to allow parse of dial and digits util
 
 This repository is under alpha stage, so expect bugs and breaking changes.
 
+![Supports aarch64 Architecture][aarch64-shield]
+![Supports amd64 Architecture][amd64-shield]  
+
+[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg?style=plastic)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fjunalmeida%2Fhomeassistant-addons)
+
+
 ### Highlights of what **Meter Parser** can do
 
 * Parse Meters
@@ -92,3 +98,9 @@ data:
 [releasebadge]:https://img.shields.io/github/v/release/junalmeida/homeassistant-addons?style=plastic&display_name=tag&include_prereleases
 <!-- [hacs]:https://github.com/hacs/integration
 [hacsbadge]:https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic -->
+
+[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg?style=plastic
+[amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg?style=plastic
+[armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg?style=plastic
+[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg?style=plastic
+[i386-shield]: https://img.shields.io/badge/i386-yes-green.svg?style=plastic
