@@ -14,7 +14,7 @@ FROM ${BUILD_FROM}
 
 # Copy root filesystem
 COPY src /src
-RUN /src/setup.sh
+RUN chmod a+x /src/setup.sh && /src/setup.sh && rm /src/setup.sh
 
 # Labels
 LABEL \
