@@ -3,11 +3,12 @@ import threading
 
 from app.data import data
 from app.camera import Camera
+from app.mqtt import Mqtt
 
 class Service(threading.Thread):
-    def __init__(self, camera_list):
+    def __init__(self, camera_list: list[Camera]):
         threading.Thread.__init__(self)
-        self.cameras: list[Camera] = camera_list
+        self.cameras = camera_list
 
     def read_stdin(self):
         readline = sys.stdin.readline()

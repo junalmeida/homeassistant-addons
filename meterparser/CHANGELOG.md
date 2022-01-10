@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Improve fail safe readings, allow to reset reading via mqtt
 - Add SIGINT logic and refactorings
 - Set qos
 - Rewrite topic to allow concurrent instances.

@@ -127,3 +127,10 @@ class Mqtt:
         topic = "%s/%s/%s/%s/availability" % (discovery_prefix, type, self.device_id, entity_id)
         result = self._mqtt_client.publish(topic, payload=("online" if available else "offline"), qos=2)
         _LOGGER.debug("Availability #%s scheduled to %s=%s" % (result.mid, entity_id, available))
+
+    def mqtt_subscribe(self, type: str, entity_id: str, callback):
+        topic = "%s/%s/%s/%s/set" % (discovery_prefix, type, self.device_id, entity_id)
+        self._mqtt_client.subscribe(topic, qos=2)
+        self._mqtt_client.message_callback_add(topic, callback)
+        _LOGGER.info("Listening to messages at topic %s" % (topic))
+

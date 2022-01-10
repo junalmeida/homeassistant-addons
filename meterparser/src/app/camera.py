@@ -1,4 +1,5 @@
 
+import json
 import logging
 import threading
 import time
@@ -46,6 +47,7 @@ class Camera (threading.Thread):
 
     def run(self):
         self._logger.info("Starting camera %s" % self.name)
+        self._mqtt.mqtt_subscribe("sensor", self.entity_id, self.set_callback)
         while not self._wait.is_set():
             try:
                 reading = 0.0
@@ -94,7 +96,7 @@ class Camera (threading.Thread):
                     )
                 else:
                     raise Exception("Invalid configuration. Set either dials or digits to scan.")
-                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < self._current_reading * 2):
+                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < self._current_reading + self._current_reading * 0.15):
 
                     self._current_reading = reading
                     data[self.entity_id] = self._current_reading
@@ -104,7 +106,7 @@ class Camera (threading.Thread):
                 elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
                     self._error_count = 0
                 else:
-                    self._logger.error("Invalid reading: %s, previous reading: %s. Value could be too high or too low?" % (reading, self._current_reading))
+                    self._logger.error("Invalid reading: %s, previous reading: %s. Value could be too high or less than previous reading?" % (reading, self._current_reading))
                     self._error_count += 1               
             except Exception as e:
                 err = {
@@ -138,3 +140,15 @@ class Camera (threading.Thread):
         
         self._mqtt.mqtt_set_availability("camera", self.entity_id, True) 
         self._mqtt.mqtt_set_state("camera", self.entity_id, bytes(jpg_buffer))
+
+    def set_callback(self, client, userdata, message):
+        try:
+            message = json.loads(message.payload.decode("utf-8"))
+            if message is not None and "value" in message and str(message["value"]).isnumeric():
+                self._current_reading = float(message["value"])
+                self._logger.info("Resetting %s (%s) to %d" % (self.name, self.entity_id, self._current_reading))
+                data[self.entity_id] = self._current_reading
+            else:
+                self._logger.error("Invalid payload %s" % message)
+        except Exception as e:
+            self._logger.error("Invalid payload %s" % e)
