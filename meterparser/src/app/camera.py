@@ -95,7 +95,7 @@ class Camera (threading.Thread):
                     # diff = (diff * 255).astype("uint8")
                     if score > 0.94:
                         should_process = False
-                        self._logger.info("Previous and current images have %d of simmilarity %, so not wasting an OCR call." % score)
+                        self._logger.debug("Previous and current images have %d percent of simmilarity, so not wasting an OCR call." % score)
 
                 if should_process:
                     self._previous_image = img.copy()

@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Fix percent message
 - Compare image simmilarities
 - Introduce Google Cloud Vision API
 - Improve fail safe readings, allow to reset reading via mqtt
