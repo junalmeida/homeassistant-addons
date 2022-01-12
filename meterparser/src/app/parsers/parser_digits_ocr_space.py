@@ -26,7 +26,7 @@ import regex as re
 _LOGGER = logging.getLogger(__name__)
 
 
-def parse_digits(
+def parse_digits_ocr_space(
     image,
     digits_count: int,
     decimals_count: int,

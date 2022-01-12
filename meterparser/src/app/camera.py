@@ -13,7 +13,7 @@ from app.mqtt import Mqtt
 from app.data import data
 from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
-from app.parsers.parser_digits import parse_digits
+from app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
 import math
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
@@ -86,7 +86,7 @@ class Camera (threading.Thread):
                         debug_path=self._debug_path,
                     )
                 elif self._digits > 0 and self._ocr_key is not None:
-                    reading = parse_digits(
+                    reading = parse_digits_ocr_space(
                         img,
                         self._digits,
                         self._decimals,
