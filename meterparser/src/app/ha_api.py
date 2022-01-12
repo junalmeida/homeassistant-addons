@@ -5,7 +5,7 @@ import time
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-supervisor_api = "http://supervisor/%s/%s"
+supervisor_api = "http://supervisor/%s"
 
 
 def supervisor(param: str):
@@ -17,7 +17,7 @@ def supervisor(param: str):
             }
 
             result = requests.get(supervisor_api % (
-                "services", param), headers=supervisor_auth)
+                "services/" + param), headers=supervisor_auth)
             result_json = result.json()
             return result_json["data"] if "data" in result_json else None
 
@@ -30,8 +30,7 @@ def version() -> str:
             "Authorization": "Bearer %s" % os.environ['SUPERVISOR_TOKEN']
         }
 
-        result = requests.get(supervisor_api % (
-            "info", ""), headers=supervisor_auth)
+        result = requests.get(supervisor_api % ("info"), headers=supervisor_auth)
         result_json = result.json()
         return result_json["version"] if "version" in result_json else "0.0.0.0"
     except Exception as e:

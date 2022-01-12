@@ -16,6 +16,8 @@ from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
 from app.parsers.parser_digits_gvision import parse_digits_gvision
 import math
+from skimage.metrics import structural_similarity as compare_ssim
+
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
@@ -38,6 +40,7 @@ class Camera (threading.Thread):
         self._logger = logging.getLogger("%s.%s" % (__name__, self.entity_id))
         self._mqtt = mqtt
         self._debug_path = debug_path
+        self._previous_image = None
         if self._digits == 0 and len(self._dials) == 0:
             raise Exception("Incorrect setup. Set this camera to use either digits or dials.")
         if self._interval < 30: 
@@ -79,50 +82,66 @@ class Camera (threading.Thread):
                             self._mqtt.mqtt_set_availability("camera", self.entity_id, False) 
                             raise e
                         self._wait.wait(10)
-                
-                if self._dials is not None and len(self._dials) > 0:
-                    reading = parse_dials(
-                        img,
-                        readout=self._dials,
-                        decimals_count=self._decimals,
-                        entity_id=self.entity_id,
-                        minDiameter=self._dial_size,
-                        maxDiameter=self._dial_size + 250,
-                        debug_path=self._debug_path,
-                    )
-                elif self._digits > 0 and self._ocr_gvision_key is not None:
-                    reading = parse_digits_gvision(
-                        img,
-                        self._digits,
-                        self._decimals,
-                        self._ocr_gvision_key,
-                        self.entity_id,
-                        debug_path=self._debug_path,
-                    )
-                elif self._digits > 0 and self._ocr_space_key is not None:
-                    reading = parse_digits_ocr_space(
-                        img,
-                        self._digits,
-                        self._decimals,
-                        self._ocr_space_key,
-                        self.entity_id,
-                        debug_path=self._debug_path,
-                    )
-                else:
-                    raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
-                limit = self._current_reading + self._current_reading * 0.15
-                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
 
-                    self._current_reading = reading
-                    data[self.entity_id] = self._current_reading
-                    self._logger.debug("Final reading: %s" % reading)
-                    
-                    self._error_count = 0
-                elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
-                    self._error_count = 0
-                else:
-                    self._logger.error("Invalid reading: %s, previous reading=%s, limit=%s. Value could be too high or less than previous reading?" % (reading, self._current_reading, limit))
-                    self._error_count += 1               
+                should_process = True
+                if self._previous_image is not None:
+                    (imgH, imgW, _) = img.shape
+                    (pimgH, pimgW, _) = self._previous_image.shape
+                    if imgH != pimgH or imgW != pimgW:
+                        self._previous_image = cv2.resize(self._previous_image, (imgW, imgH))
+                    grayA = cv2.cvtColor(self._previous_image, cv2.COLOR_BGR2GRAY)
+                    grayB = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    (score, _) = compare_ssim(grayA, grayB, full=True)
+                    # diff = (diff * 255).astype("uint8")
+                    if score > 0.94:
+                        should_process = False
+                        self._logger.info("Previous and current images have %d of simmilarity %, so not wasting an OCR call." % score)
+
+                if should_process:
+                    self._previous_image = img.copy()
+                    if self._dials is not None and len(self._dials) > 0:
+                        reading = parse_dials(
+                            img,
+                            readout=self._dials,
+                            decimals_count=self._decimals,
+                            entity_id=self.entity_id,
+                            minDiameter=self._dial_size,
+                            maxDiameter=self._dial_size + 250,
+                            debug_path=self._debug_path,
+                        )
+                    elif self._digits > 0 and self._ocr_gvision_key is not None:
+                        reading = parse_digits_gvision(
+                            img,
+                            self._digits,
+                            self._decimals,
+                            self._ocr_gvision_key,
+                            self.entity_id,
+                            debug_path=self._debug_path,
+                        )
+                    elif self._digits > 0 and self._ocr_space_key is not None:
+                        reading = parse_digits_ocr_space(
+                            img,
+                            self._digits,
+                            self._decimals,
+                            self._ocr_space_key,
+                            self.entity_id,
+                            debug_path=self._debug_path,
+                        )
+                    else:
+                        raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
+                    limit = self._current_reading + 200.0 # 100 m3? 100 kWh? 100 what?
+                    if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
+
+                        self._current_reading = reading
+                        data[self.entity_id] = self._current_reading
+                        self._logger.debug("Final reading: %s" % reading)
+                        
+                        self._error_count = 0
+                    elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
+                        self._error_count = 0
+                    else:
+                        self._logger.error("Invalid reading: %s, previous reading=%s, limit=%s. Value could be too high or less than previous reading?" % (reading, self._current_reading, limit))
+                        self._error_count += 1               
             except Exception as e:
                 err = {
                         "last_error": "%s" % e,

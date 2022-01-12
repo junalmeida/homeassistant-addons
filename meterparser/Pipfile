@@ -9,6 +9,8 @@ paho-mqtt = "*"
 opencv-contrib-python-headless = "*"
 python-slugify = "*"
 regex = "*"
+imutils = "*"
+scikit-image = "*"
 
 [dev-packages]
 
