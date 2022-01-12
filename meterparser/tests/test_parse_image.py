@@ -6,8 +6,9 @@ from src.app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
 from src.app.parsers.parser_digits_gvision import parse_digits_gvision
 from src.app.parsers.image_utils import crop_image, rotate_image
 
-ocr_space_key = "890a9b9b8388957"
-ocr_gvision_key = "AIzaSyAIbswkVY4Fuszv8jisgckMh4jsR8Z_JHw"
+from .config import config
+ocr_space_key = config["cameras"][0]["ocr_space_key"]
+ocr_gvision_key = config["cameras"][0]["ocr_gvision_key"]
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "results")
 
 

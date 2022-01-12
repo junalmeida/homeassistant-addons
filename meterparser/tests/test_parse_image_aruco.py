@@ -5,8 +5,8 @@ from src.app.parsers.image_utils import crop_image, rotate_image, prepare_image
 from src.app.parsers.parser_dial import parse_dials
 from src.app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
 
-
-ocr_key = "890a9b9b8388957"
+from .config import config
+ocr_key = config["cameras"][0]["ocr_space_key"]
 entity_id = "test.test"
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "results")
 
