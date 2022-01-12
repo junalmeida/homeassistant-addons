@@ -3,9 +3,11 @@ import cv2
 
 from src.app.parsers.parser_dial import parse_dials
 from src.app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
+from src.app.parsers.parser_digits_gvision import parse_digits_gvision
 from src.app.parsers.image_utils import crop_image, rotate_image
 
-ocr_key = "890a9b9b8388957"
+ocr_space_key = "890a9b9b8388957"
+ocr_gvision_key = "AIzaSyAIbswkVY4Fuszv8jisgckMh4jsR8Z_JHw"
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "results")
 
 
@@ -69,7 +71,9 @@ def test_water_digits_1(request):
     samplepath = os.path.join(os.path.dirname(__file__), "images",  'sample_water-1.jpg')
     inputFrame = cv2.imread(samplepath)
     inputFrame = crop_image(inputFrame, [179, 155, 194, 50])
-    reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_key, request.node.name, debug_path=dir_path)
+    reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_space_key, request.node.name, debug_path=dir_path)
+    assert reading == 2802.0
+    reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
     assert reading == 2802.0
 
 
@@ -77,7 +81,9 @@ def test_water_digits_2(request):
     samplepath = os.path.join(os.path.dirname(__file__), "images",  'sample_water-2.jpg')
     inputFrame = cv2.imread(samplepath)
     inputFrame = crop_image(inputFrame, [40, 144, 118, 50])
-    reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_key, request.node.name, debug_path=dir_path)
+    reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_space_key, request.node.name, debug_path=dir_path)
+    assert reading == 1.10
+    reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
     assert reading == 1.10
 
 
@@ -85,9 +91,10 @@ def test_water_digits_3(request):
     samplepath = os.path.join(os.path.dirname(__file__), "images",  'sample_water-3.jpg')
     inputFrame = cv2.imread(samplepath)
     inputFrame = crop_image(inputFrame, [451, 414, 372, 133])
-    reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_key, request.node.name, debug_path=dir_path)
+    reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_space_key, request.node.name, debug_path=dir_path)
     assert reading == 2.00
-
+    reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
+    assert reading == 2.00
 
 def test_water_rotate_crop(request):
     samplepath = os.path.join(os.path.dirname(__file__),  "images", 'sample_water-rotate.jpg')
@@ -95,5 +102,8 @@ def test_water_rotate_crop(request):
     inputFrame = rotate_image(inputFrame, -121)
     cv2.imwrite(os.path.join(dir_path, "%s-rotate.jpg" % request.node.name), inputFrame)
     inputFrame = crop_image(inputFrame, [365, 405, 160, 60])
-    reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_key, request.node.name, debug_path=dir_path)
-    assert reading == 2806.0
+    reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
+    assert reading >= 2806.0 and reading <= 2806.9
+    reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_space_key, request.node.name, debug_path=dir_path)
+    assert reading >= 2806.0 and reading <= 2806.9
+

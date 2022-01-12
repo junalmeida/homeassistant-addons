@@ -14,6 +14,7 @@ from app.data import data
 from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
+from app.parsers.parser_digits_gvision import parse_digits_gvision
 import math
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
@@ -30,7 +31,8 @@ class Camera (threading.Thread):
         self._dial_size = int(camera["dial_size"]) if "dial_size" in camera else 100
         self._digits = int(camera["digits"]) if "digits" in camera else 0
         self._decimals = int(camera["decimals"]) if "decimals" in camera else 0
-        self._ocr_key = camera["ocr_key"] if "ocr_key" in camera else None
+        self._ocr_space_key = camera["ocr_space_key"] if "ocr_space_key" in camera else None
+        self._ocr_gvision_key = camera["ocr_gvision_key"] if "ocr_gvision_key" in camera else None
         self.entity_id = entity_id
         self._error_count = 0
         self._logger = logging.getLogger("%s.%s" % (__name__, self.entity_id))
@@ -47,9 +49,12 @@ class Camera (threading.Thread):
 
     def run(self):
         self._logger.info("Starting camera %s" % self.name)
-        self._mqtt.mqtt_subscribe("sensor", self.entity_id, self.set_callback)
+        topic_listen = self._mqtt.mqtt_subscribe("sensor", self.entity_id, self.set_callback)
         while not self._wait.is_set():
             try:
+                self._mqtt.mqtt_sensor_discovery(self.entity_id, self.name, self._device_class, self._unit_of_measurement) 
+                self._logger.info("Listening to messages at topic %s" % (topic_listen))
+
                 reading = 0.0
                 img = None
                 image_error = 0
@@ -85,18 +90,28 @@ class Camera (threading.Thread):
                         maxDiameter=self._dial_size + 250,
                         debug_path=self._debug_path,
                     )
-                elif self._digits > 0 and self._ocr_key is not None:
+                elif self._digits > 0 and self._ocr_gvision_key is not None:
+                    reading = parse_digits_gvision(
+                        img,
+                        self._digits,
+                        self._decimals,
+                        self._ocr_gvision_key,
+                        self.entity_id,
+                        debug_path=self._debug_path,
+                    )
+                elif self._digits > 0 and self._ocr_space_key is not None:
                     reading = parse_digits_ocr_space(
                         img,
                         self._digits,
                         self._decimals,
-                        self._ocr_key,
+                        self._ocr_space_key,
                         self.entity_id,
                         debug_path=self._debug_path,
                     )
                 else:
-                    raise Exception("Invalid configuration. Set either dials or digits to scan.")
-                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < self._current_reading + self._current_reading * 0.15):
+                    raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
+                limit = self._current_reading + self._current_reading * 0.15
+                if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
 
                     self._current_reading = reading
                     data[self.entity_id] = self._current_reading
@@ -106,7 +121,7 @@ class Camera (threading.Thread):
                 elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
                     self._error_count = 0
                 else:
-                    self._logger.error("Invalid reading: %s, previous reading: %s. Value could be too high or less than previous reading?" % (reading, self._current_reading))
+                    self._logger.error("Invalid reading: %s, previous reading=%s, limit=%s. Value could be too high or less than previous reading?" % (reading, self._current_reading, limit))
                     self._error_count += 1               
             except Exception as e:
                 err = {

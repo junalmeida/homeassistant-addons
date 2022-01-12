@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Introduce Google Cloud Vision API
 - Improve fail safe readings, allow to reset reading via mqtt
 - Add SIGINT logic and refactorings
 - Set qos

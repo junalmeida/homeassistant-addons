@@ -7,7 +7,7 @@ import os
 import threading
 
 from slugify import slugify
-from app.ha_api import supervisor
+from app.ha_api import supervisor, version
 from app.config import config
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ class Mqtt:
             self._mqtt_config = config["mqtt"]
         else:    
             self._mqtt_config = supervisor("mqtt")
+        self.version = version()
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
@@ -32,7 +33,7 @@ class Mqtt:
                 "manufacturer": "Meter Parser",
                 "model": "Meter Parser Add-On",
                 "name": "Meter Parser at %s" % self.device_id,
-                "sw_version": "1.0.0.6" # TODO: Get from git build
+                "sw_version": self.version
             }
     def mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
@@ -44,7 +45,6 @@ class Mqtt:
                 camera = Camera(cfg, entity_id, self, config["debug_path"] if "debug_path" in config else None)
                 self.cameras.append(camera)
                 camera.start()
-                self.mqtt_sensor_discovery(camera.entity_id, camera.name, camera._device_class, camera._unit_of_measurement) 
 
     def mqtt_stop(self):
         for camera in self.cameras:
@@ -116,7 +116,7 @@ class Mqtt:
     def mqtt_set_state(self, type:str, entity_id: str, state):
         topic = "%s/%s/%s/%s/state" % (discovery_prefix, type, self.device_id, entity_id)
         result = self._mqtt_client.publish(topic, payload=state, qos=2)
-        _LOGGER.debug("State #%s scheduled to %s=%s" % (result.mid, entity_id, state))
+        _LOGGER.debug("State #%s scheduled to %s" % (result.mid, entity_id))
 
     def mqtt_set_attributes(self, type:str, entity_id: str, attributes):
         topic = "%s/%s/%s/%s/attributes" % (discovery_prefix, type, self.device_id, entity_id)
@@ -126,11 +126,11 @@ class Mqtt:
     def mqtt_set_availability(self, type:str, entity_id: str, available: bool):
         topic = "%s/%s/%s/%s/availability" % (discovery_prefix, type, self.device_id, entity_id)
         result = self._mqtt_client.publish(topic, payload=("online" if available else "offline"), qos=2)
-        _LOGGER.debug("Availability #%s scheduled to %s=%s" % (result.mid, entity_id, available))
+        _LOGGER.debug("Availability #%s scheduled to %s" % (result.mid, entity_id))
 
     def mqtt_subscribe(self, type: str, entity_id: str, callback):
         topic = "%s/%s/%s/%s/set" % (discovery_prefix, type, self.device_id, entity_id)
         self._mqtt_client.subscribe(topic, qos=2)
         self._mqtt_client.message_callback_add(topic, callback)
-        _LOGGER.info("Listening to messages at topic %s" % (topic))
+        return topic
 

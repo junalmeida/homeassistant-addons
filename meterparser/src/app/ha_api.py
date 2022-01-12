@@ -24,3 +24,16 @@ def supervisor(param: str):
         except Exception as e:
             _LOGGER.error("Could not connect to supervisor: %s. Retry in 5 secs." % e)
             time.sleep(5)
+def version() -> str:
+    try:
+        supervisor_auth = {
+            "Authorization": "Bearer %s" % os.environ['SUPERVISOR_TOKEN']
+        }
+
+        result = requests.get(supervisor_api % (
+            "info", ""), headers=supervisor_auth)
+        result_json = result.json()
+        return result_json["version"] if "version" in result_json else "0.0.0.0"
+    except Exception as e:
+        _LOGGER.error("Could not connect to supervisor: %s" % e)
+        return "0.0.0.0"

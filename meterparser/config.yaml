@@ -1,5 +1,5 @@
 name: Meter Parser
-version: 1.0.0.10
+version: 1.0.0.11
 slug: meter-parser
 description: Read meter needles and numbers from a camera snapshot.
 url: https://github.com/junalmeida/homeassistant-addons/meterparser
@@ -34,5 +34,6 @@ schema:
         - "str?"
       digits: "int(0,10)?"
       decimals: "int(0,3)?"
-      ocr_key: str?
+      ocr_space_key: str?
+      ocr_gvision_key: str?
       dial_size: "int(0,300)?"
