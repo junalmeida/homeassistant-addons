@@ -2,7 +2,7 @@
 
 # Home Assistant - Meter Parser AddOn
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] ![Checks][checksbadge]
-![Last release][releasebadge]
+![Last release][releasebadge] [^1]
 
 This is a Home Assistant AddOn (not HACS) to allow parse of dial and digits utility meters like water, gas, and electricity to provide energy consumption information to home assistant using a regular ip camera.
 
