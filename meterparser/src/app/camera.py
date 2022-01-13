@@ -129,7 +129,7 @@ class Camera (threading.Thread):
                         )
                     else:
                         raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
-                    limit = self._current_reading + 200.0 # 100 m3? 100 kWh? 100 what?
+                    limit = self._current_reading + 50.0 # 50 m3? 50 kWh? 50 what? TODO: Check if this is a good fail safe parameter.
                     if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
 
                         self._current_reading = reading
