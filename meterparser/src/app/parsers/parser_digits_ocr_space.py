@@ -21,7 +21,6 @@ import requests
 import cv2
 import numpy as np
 import regex as re
-# import pytesseract
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,48 +37,12 @@ def parse_digits_ocr_space(
     global _LOGGER
     _LOGGER = logging.getLogger("%s.%s" % (__name__, entity_id))
     debugfile = time.strftime(entity_id + "-%Y-%m-%d_%H-%M-%S")
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    # remove red colors
-    sensitivity = 30
-    lower_red_0 = np.array([0, 100, 100])
-    upper_red_0 = np.array([sensitivity, 255, 255])
-    lower_red_1 = np.array([180 - sensitivity, 100, 100])
-    upper_red_1 = np.array([180, 255, 255])
-
-    mask_0 = cv2.inRange(hsv, lower_red_0, upper_red_0)
-    mask_1 = cv2.inRange(hsv, lower_red_1, upper_red_1)
-
-    mask = cv2.bitwise_or(mask_0, mask_1)
-    # Change image to white where we found red
-    frame = image.copy()
-    frame[np.where(mask)] = (255, 255, 255)
 
     if debug_path is not None:
-        cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), frame)
+        cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), image)
 
-    reading = float(0) # ocr_tesseract(frame, digits_count, decimals_count, entity_id)
-    if reading == 0:
-        reading = ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id)
+    reading = ocr_space(image, digits_count, decimals_count, ocr_key, entity_id)
     return reading
-
-# # tesseract code for when we have good trained data
-# def ocr_tesseract(frame, digits_count, decimals_count, entity_id):
-#     reading = 0
-#     try:
-#         _LOGGER.debug("Sending frame to tesseract %s" % (pytesseract.get_tesseract_version()))
-        
-#         text = pytesseract.image_to_string(frame, lang="digits_comma", config="--psm 7 -c tessedit_char_whitelist=0123456789", timeout=15)
-#         reading = parse_result(
-#                 text,
-#                 digits_count,
-#                 decimals_count,
-#                 entity_id,
-#             )
-#     except Exception as e:
-#         _LOGGER.debug("Error while OCR with tesseract: %s" % e)
-#     return reading
-    
 
 URL_API = "https://api.ocr.space/parse/image"
 def ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id):
