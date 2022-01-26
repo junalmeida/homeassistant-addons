@@ -40,7 +40,7 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
         if len(corners) < 2:
             if send_image is not None:
                 send_image(image_to_aruco)
-            raise Exception("Could not find the same markers after rotating the image. This is usually a very bad quality image")
+            raise Exception("Could not find the same markers after rotating the image. This is usually a very bad quality image.")
         markers = list()
         for (markerCorner, markerID) in zip(corners, ids):
             marker = extractMarker(markerCorner, markerID[0])
@@ -86,7 +86,7 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
             send_image(image_to_aruco)
         if debug_path is not None:
             cv2.imwrite(os.path.join(debug_path, "%s-aruco-err.jpg" % debugfile), image_to_aruco)
-        raise Exception("Could not find ArUco markers. Please print two markers at https://chev.me/arucogen/ and stick to the top-left and bottom-right corners of the region of interest.")
+        raise Exception("Could not find ArUco markers. Please print two markers at https://chev.me/arucogen/ and stick to the top-left and bottom-right corners of the region of interest. If markers are already there check your camera's light conditions and quality.")
 
     return image
 

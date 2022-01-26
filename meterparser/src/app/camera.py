@@ -71,13 +71,7 @@ class Camera (threading.Thread):
                         
                     except Exception as e:
                         img = None
-                        err = {
-                                "last_error": "Could not get or process camera snapshot: %s. Retry in 10 sec." % e,
-                                "last_error_at": time.strftime("%Y-%m-%d %H:%M:%S")
-                            }
                         image_error += 1
-                        self._logger.error(err["last_error"])
-                        self._mqtt.mqtt_set_attributes("sensor", self.entity_id, err)
                         if image_error > 5:
                             self._mqtt.mqtt_set_availability("camera", self.entity_id, False) 
                             raise e
@@ -155,6 +149,11 @@ class Camera (threading.Thread):
             if self._error_count < 10 and self._current_reading > 0:
                 # send to mqtt
                 self._mqtt.mqtt_set_state("sensor", self.entity_id, self._current_reading)
+                err = {
+                    "last_error": None,
+                    "last_error_at": None
+                }
+                self._mqtt.mqtt_set_attributes("sensor", self.entity_id, err)
             self._logger.debug("Waiting %s secs for next reading." % self._interval)              
             self._wait.wait(self._interval)
         self._logger.warn("Camera %s is now disposed." % self.name)
