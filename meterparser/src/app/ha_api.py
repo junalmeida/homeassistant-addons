@@ -30,7 +30,7 @@ def version() -> str:
             "Authorization": "Bearer %s" % os.environ['SUPERVISOR_TOKEN']
         }
 
-        result = requests.get(supervisor_api % ("info"), headers=supervisor_auth)
+        result = requests.get(supervisor_api % ("addons/self/info"), headers=supervisor_auth)
         result_json = result.json()
         return result_json["version"] if "version" in result_json else "0.0.0.0"
     except Exception as e:

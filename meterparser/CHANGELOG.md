@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- General fixes (see commit history)
 - Fix percent message
 - Compare image simmilarities
 - Introduce Google Cloud Vision API
