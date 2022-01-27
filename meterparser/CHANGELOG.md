@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Easier to read log messages
 - Tune limits and fail safe OCR readings
 - General fixes (see commit history)
 - Fix percent message

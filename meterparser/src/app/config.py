@@ -17,5 +17,5 @@ def record_factory(*args, **kwargs):
         record.name) > 25 else record.name
     return record
 
-logging.basicConfig(level=logging.getLevelName(log_level), format='%(sname)-25s %(asctime)s - %(levelname)-10s %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p')
+logging.basicConfig(level=logging.getLevelName(log_level), format='%(sname)-25s %(asctime)s - %(levelname)-10s\n%(message)s\n', datefmt='%Y-%m-%d %I:%M:%S %p')
 logging.setLogRecordFactory(record_factory)

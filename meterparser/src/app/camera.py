@@ -128,7 +128,7 @@ class Camera (threading.Thread):
                     limit = self._current_reading + self.reading_limit 
                     if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
 
-                        self._logger.info("Valid reading.\ncurrent=%s, previous=%s" % (reading, self._current_reading))
+                        self._logger.info("Got a valid reading\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
                         self._current_reading = reading
                         data[self.entity_id] = self._current_reading
                         
@@ -136,7 +136,7 @@ class Camera (threading.Thread):
                     elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
                         self._error_count = 0
                     else:
-                        self._logger.error("Invalid reading. Value could be too high or less than previous.\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
+                        self._logger.error("Got an invalid reading. Value could be too high or less than previous.\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
                         self._error_count += 1               
 
             except Exception as e:
