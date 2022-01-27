@@ -21,6 +21,8 @@ from skimage.metrics import structural_similarity as compare_ssim
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
+        self.error_limit = 30
+        self.reading_limit = 5 # 5 m3? 5 kWh? 5 what? TODO: Check if this is a good fail safe parameter.
         self._wait = threading.Event()
         self._interval = int(camera["interval"])
         self._snapshot_url = str(camera["snapshot_url"])
@@ -87,7 +89,7 @@ class Camera (threading.Thread):
                     grayB = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     (score, _) = compare_ssim(grayA, grayB, full=True)
                     # diff = (diff * 255).astype("uint8")
-                    if score > 0.94:
+                    if score > 0.93:
                         should_process = False
                         self._logger.debug("Previous and current images have %d percent of simmilarity, so not wasting an OCR call." % score)
 
@@ -123,19 +125,20 @@ class Camera (threading.Thread):
                         )
                     else:
                         raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
-                    limit = self._current_reading + 15.0 # 15 m3? 15 kWh? 15 what? TODO: Check if this is a good fail safe parameter.
+                    limit = self._current_reading + self.reading_limit 
                     if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
 
+                        self._logger.info("Valid reading.\ncurrent=%s, previous=%s" % (reading, self._current_reading))
                         self._current_reading = reading
                         data[self.entity_id] = self._current_reading
-                        self._logger.debug("Final reading: %s" % reading)
                         
                         self._error_count = 0
                     elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
                         self._error_count = 0
                     else:
-                        self._logger.error("Invalid reading: %s, previous reading=%s, limit=%s. Value could be too high or less than previous reading?" % (reading, self._current_reading, limit))
+                        self._logger.error("Invalid reading. Value could be too high or less than previous.\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
                         self._error_count += 1               
+
             except Exception as e:
                 err = {
                         "last_error": "%s" % e,
@@ -145,8 +148,8 @@ class Camera (threading.Thread):
                 self._mqtt.mqtt_set_attributes("sensor", self.entity_id, err)
                 self._error_count += 1
 
-            self._mqtt.mqtt_set_availability("sensor", self.entity_id, self._error_count < 10)      
-            if self._error_count < 10 and self._current_reading > 0:
+            self._mqtt.mqtt_set_availability("sensor", self.entity_id, self._error_count < self.error_limit)      
+            if self._error_count < self.error_limit and self._current_reading > 0:
                 # send to mqtt
                 self._mqtt.mqtt_set_state("sensor", self.entity_id, self._current_reading)
                 err = {

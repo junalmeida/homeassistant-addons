@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Tune limits and fail safe OCR readings
 - General fixes (see commit history)
 - Fix percent message
 - Compare image simmilarities

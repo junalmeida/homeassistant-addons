@@ -32,6 +32,7 @@ def version() -> str:
 
         result = requests.get(supervisor_api % ("addons/self/info"), headers=supervisor_auth)
         result_json = result.json()
+        result_json = result_json["data"] if "data" in result_json else result_json
         return result_json["version"] if "version" in result_json else "0.0.0.0"
     except Exception as e:
         _LOGGER.error("Could not connect to supervisor: %s" % e)
