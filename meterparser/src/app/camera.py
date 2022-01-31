@@ -125,18 +125,21 @@ class Camera (threading.Thread):
                         )
                     else:
                         raise Exception("Invalid configuration. Set either dials or digits to scan. For digits set an API key.")
-                    limit = self._current_reading + self.reading_limit 
-                    if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < limit):
+                    upper_limit = self._current_reading + self.reading_limit 
+                    lower_limit = self._current_reading - self.reading_limit 
+                    if reading > 0 and reading >= self._current_reading and (self._current_reading == 0 or reading < upper_limit):
 
-                        self._logger.info("Got a valid reading\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
+                        self._logger.info("Got a valid reading\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, upper_limit))
                         self._current_reading = reading
                         data[self.entity_id] = self._current_reading
                         
                         self._error_count = 0
-                    elif reading > 0 and math.floor(reading) == math.floor(self._current_reading):
+                    elif reading > 0 and reading >= lower_limit:
+                        # if reading is close to last reading, let's send again last reading so
+                        # it won't be available by a small amount of difference.
                         self._error_count = 0
                     else:
-                        self._logger.error("Got an invalid reading. Value could be too high or less than previous.\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, limit))
+                        self._logger.error("Got an invalid reading. Value could be too high or less than previous.\ncurrent=%s, previous=%s, limit=%s" % (reading, self._current_reading, upper_limit))
                         self._error_count += 1               
 
             except Exception as e:

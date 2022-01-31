@@ -1,6 +1,7 @@
 # Changelog
 
 ## [1.0.0.*]
+- Make a lower limit so device won't be unavailable
 - Easier to read log messages
 - Tune limits and fail safe OCR readings
 - General fixes (see commit history)
