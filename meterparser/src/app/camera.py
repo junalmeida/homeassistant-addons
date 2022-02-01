@@ -22,7 +22,7 @@ class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
         self.error_limit = 30
-        self.reading_limit = 5 # 5 m3? 5 kWh? 5 what? TODO: Check if this is a good fail safe parameter.
+        self.reading_limit = 3 # 3 m3? 3 kWh? 3 what? TODO: Check if this is a good fail safe parameter.
         self._wait = threading.Event()
         self._interval = int(camera["interval"])
         self._snapshot_url = str(camera["snapshot_url"])
