@@ -8,6 +8,15 @@ from dataclasses import dataclass
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
 
+@dataclass
+class Marker:
+    id: int
+    topLeft: tuple[int, int]
+    topRight: tuple[int, int]
+    bottomLeft: tuple[int, int]
+    bottomRight: tuple[int, int]
+    center: tuple[int, int]
+    angle: int
 
 def prepare_image(image, entity_id:str, send_image, debug_path: str):
     debugfile = time.strftime(entity_id + "-%Y-%m-%d_%H-%M-%S")
@@ -22,7 +31,7 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
         image_to_aruco, arucoDict, parameters=arucoParams
     )
 
-    markers = list()
+    markers = list[Marker]()
     if len(corners) == 2:
         if debug_path is not None:
             cv2.imwrite(os.path.join(debug_path, "%s-aruco-in.jpg" % debugfile), image_to_aruco)
@@ -41,7 +50,7 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
             if send_image is not None:
                 send_image(image_to_aruco)
             raise Exception("Could not find the same markers after rotating the image. This is usually a very bad quality image.")
-        markers = list()
+        markers = list[Marker]()
         for (markerCorner, markerID) in zip(corners, ids):
             marker = extractMarker(markerCorner, markerID[0])
             markers.append(marker)
@@ -58,6 +67,8 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
                         0.8, (0, 255, 0), 2)
             cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
         markers.sort(key=lambda x: x.id)
+        if markers[0].id == markers[1].id: 
+            raise Exception("The ArUco markers found have the same id. Please use different ids and stick to the top-left and bottom-right corners of the region of interest, respecting the id order.")
         topLeft = markers[0].bottomRight
         bottomRight = markers[1].topLeft
         if send_image is not None:
@@ -111,18 +122,6 @@ def extractMarker(markerCorner, markerID: int):
     estimated_angle = round((angle1 + angle2) / 2.0)
 
     return Marker(markerID, topLeft, topRight, bottomLeft, bottomRight, center, estimated_angle)
-
-
-@dataclass
-class Marker:
-    id: int
-    topLeft: tuple[int, int]
-    topRight: tuple[int, int]
-    bottomLeft: tuple[int, int]
-    bottomRight: tuple[int, int]
-    center: tuple[int, int]
-    angle: int
-
 
 def angle_between(p1: tuple[int, int], p2: tuple[int, int]) -> float:  # tuple[x,y]
     (p1x, p1y) = p1
