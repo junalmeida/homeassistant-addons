@@ -16,7 +16,7 @@ numpy==1.22.0; python_version >= '3.9'
 opencv-contrib-python-headless==4.5.5.62
 packaging==21.3; python_version >= '3.6'
 paho-mqtt==1.6.1
-pillow==9.0.0; python_version >= '3.7'
+pillow==9.0.1; python_version >= '3.7'
 pyparsing==3.0.6; python_version >= '3.6'
 python-slugify==5.0.2
 pywavelets==1.2.0; python_version >= '3.7'
