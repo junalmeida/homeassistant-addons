@@ -17,12 +17,13 @@ class Mqtt (threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self._wait = threading.Event()
-
+        self.check_auth()
         self.version = version()
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
         self._mqtt_client.on_publish = self.mqtt_publish
+        self._mqtt_client.on_connect_fail = self.mqtt_connection_failed
 
         self.cameras: list = list()
         self.device_id = slugify((os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]).lower())
@@ -37,10 +38,20 @@ class Mqtt (threading.Thread):
         self._wait.set()
     def run(self):
         while not self._wait.wait(10):
-            if "mqtt" in config and "host" in config["mqtt"]:
-                self._mqtt_config = config["mqtt"]
-            else:    
-                self._mqtt_config = supervisor("mqtt")
+            self.check_auth()
+
+    def check_auth(self):
+        if "mqtt" in config and "host" in config["mqtt"]:
+            self._mqtt_config = config["mqtt"]
+        else:    
+            self._mqtt_config = supervisor("mqtt")
+        username = str(self._mqtt_config["username"])
+        password = str(self._mqtt_config["password"])
+        self._mqtt_client.username_pw_set(username=username,password=password)
+        host = str(self._mqtt_config["host"])
+        port = int(self._mqtt_config["port"])
+        if self._mqtt_client._host is not None and (self._mqtt_client._host != host or self._mqtt_client._port != port):
+            self._mqtt_client.connect_async(host, port)
 
     def mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
@@ -67,17 +78,15 @@ class Mqtt (threading.Thread):
             _LOGGER.debug("%s camera(s) running" % len(self.cameras))    
     def mqtt_publish(self, client, userdata, mid):
         _LOGGER.debug("Message #%s delivered to %s" % (mid, client._host))
-
+    def mqtt_connection_failed(self, client, userdata):        
+        _LOGGER.error("Connection to mqtt has failed: #%s - %s" % (client, userdata))
     def mqtt_start(self):
         self.start()
         while True:
             try:
-                username = str(self._mqtt_config["username"])
-                password = str(self._mqtt_config["password"])
                 host = str(self._mqtt_config["host"])
                 port = int(self._mqtt_config["port"])
                 _LOGGER.debug("Connecting to mqtt %s..." % host)    
-                self._mqtt_client.username_pw_set(username=username,password=password)
                 self._mqtt_client.connect(host, port)
                 self._mqtt_client.loop_forever()
                 return
