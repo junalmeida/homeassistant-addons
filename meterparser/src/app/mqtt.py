@@ -86,8 +86,7 @@ class Mqtt (threading.Thread):
             try:
                 host = str(self._mqtt_config["host"])
                 port = int(self._mqtt_config["port"])
-                _LOGGER.debug("Connecting to mqtt %s..." % host)    
-                self._mqtt_client.connect(host, port)
+                self._mqtt_client.connect_async(host, port)
                 self._mqtt_client.loop_forever()
                 return
             except Exception as e:
