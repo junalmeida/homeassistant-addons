@@ -17,7 +17,6 @@ class Mqtt (threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self._wait = threading.Event()
-        self.check_auth()
         self.version = version()
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
@@ -34,6 +33,8 @@ class Mqtt (threading.Thread):
                 "name": "Meter Parser at %s" % self.device_id,
                 "sw_version": self.version
             }
+
+        self.check_auth()
     def stop(self):
         self._wait.set()
     def run(self):

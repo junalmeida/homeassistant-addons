@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.0.25]
+- Deal with possible HA restart and username/password change. 
 ## [1.0.0.*]
 - Make a lower limit so device won't be unavailable
 - Easier to read log messages
