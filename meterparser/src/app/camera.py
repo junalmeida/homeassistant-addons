@@ -57,7 +57,8 @@ class Camera (threading.Thread):
         topic_listen = self._mqtt.mqtt_subscribe("sensor", self.entity_id, self.set_callback)
         while not self._wait.is_set():
             try:
-                self._mqtt.mqtt_sensor_discovery(self.entity_id, self.name, self._device_class, self._unit_of_measurement) 
+                self._mqtt.mqtt_sensor_discovery(self.entity_id, self.name, self._device_class, self._unit_of_measurement)
+                self._mqtt.mqtt_set_availability("sensor", self.entity_id, self._error_count < self.error_limit)      
                 self._logger.info("Listening to messages at topic %s" % (topic_listen))
 
                 reading = 0.0
