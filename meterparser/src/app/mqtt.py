@@ -13,13 +13,11 @@ from app.config import config
 _LOGGER = logging.getLogger(__name__)
 discovery_prefix = "homeassistant"
 
-class Mqtt:
+class Mqtt (threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+        self._wait = threading.Event()
 
-        if "mqtt" in config and "host" in config["mqtt"]:
-            self._mqtt_config = config["mqtt"]
-        else:    
-            self._mqtt_config = supervisor("mqtt")
         self.version = version()
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
@@ -35,6 +33,15 @@ class Mqtt:
                 "name": "Meter Parser at %s" % self.device_id,
                 "sw_version": self.version
             }
+    def stop(self):
+        self._wait.set()
+    def run(self):
+        while not self._wait.wait(10):
+            if "mqtt" in config and "host" in config["mqtt"]:
+                self._mqtt_config = config["mqtt"]
+            else:    
+                self._mqtt_config = supervisor("mqtt")
+
     def mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
         from app.camera import Camera
@@ -62,6 +69,7 @@ class Mqtt:
         _LOGGER.debug("Message #%s delivered to %s" % (mid, client._host))
 
     def mqtt_start(self):
+        self.start()
         while True:
             try:
                 username = str(self._mqtt_config["username"])
