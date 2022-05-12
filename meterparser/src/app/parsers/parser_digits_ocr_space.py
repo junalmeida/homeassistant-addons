@@ -41,12 +41,17 @@ def parse_digits_ocr_space(
     if debug_path is not None:
         cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), image)
 
-    reading = ocr_space(image, digits_count, decimals_count, ocr_key, entity_id)
+    reading = ocr_space(image, digits_count,
+                        decimals_count, ocr_key, entity_id)
     return reading
 
+
 URL_API = "https://api.ocr.space/parse/image"
+
+
 def ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id):
-    payload = {"apikey": ocr_key, "language": "eng", "scale": "true", "OCREngine": "2", "filetype": "PNG"}
+    payload = {"apikey": ocr_key, "language": "eng",
+               "scale": "true", "OCREngine": "2", "filetype": "PNG"}
 
     _LOGGER.debug("OCR image: %s, payload=%s" % (URL_API, payload))
     imencoded = cv2.imencode(".png", frame)[1]
@@ -94,15 +99,19 @@ def parse_result(
                 .replace("/", "")
                 .replace("\\", "")
                 .replace("o", "0")
+                .replace("d", "0")
+                .replace("b", "0")
                 .replace("O", "0")
                 .replace("T", "1")
             )
-            regex = re.findall("[0-9]{%s}" % (digits_count), x_str, overlapped = True)
+            regex = re.findall("[0-9]{%s}" %
+                               (digits_count), x_str, overlapped=True)
             if regex is None or len(regex) == 0:
                 # last digit could be in a middle of a spin, so ocr may detect H.
                 # I believe it is safe to replace decimals with zeroes, and then
                 # repeat last decimal reading later.
-                regex = re.findall("[0-9]{%s}" % (digits_count - decimals_count), x_str, overlapped = True)
+                regex = re.findall(
+                    "[0-9]{%s}" % (digits_count - decimals_count), x_str, overlapped=True)
                 if regex is not None and len(regex) > 0:
                     reading = float(regex[-1] + ("0" * decimals_count))
             else:
@@ -113,7 +122,5 @@ def parse_result(
     else:
         if decimals_count > 0:
             reading = reading / float(10 ** decimals_count)
-        _LOGGER.debug(
-            "%s: Final reading '%s' from OCR '%s'" % (entity_id, reading, ocr.replace("\n", "\\n"))
-        )
+
     return reading
