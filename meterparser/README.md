@@ -44,9 +44,7 @@ I also appreciate if you share the camera device specs and light conditions.
 [buymecoffee]: https://www.buymeacoffee.com/junalmeida
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange?style=plastic&logo=buymeacoffee
 [checksbadge]:https://img.shields.io/github/checks-status/junalmeida/homeassistant-addons/main?style=plastic
-[releasebadge]:https://img.shields.io/github/v/release/junalmeida/homeassistant-addons?style=plastic&display_name=tag&include_prereleases
-<!-- [hacs]:https://github.com/hacs/integration
-[hacsbadge]:https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic -->
+[releasebadge]:https://img.shields.io/badge/dynamic/yaml?label=version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fjunalmeida%2Fhomeassistant-addons%2Fmain%2Fmeterparser%2Fconfig.yaml&style=plastic
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg?style=plastic
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg?style=plastic
