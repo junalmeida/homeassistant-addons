@@ -1,4 +1,4 @@
-<img src="meterparser/icon.png" align="right" width="128" />  
+<img src="icon.png" align="right" width="128" />  
 
 # Home Assistant - Meter Parser AddOn
 
