@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.0.28]
+- Adjust time limit for camera scan interval 
+- Update base docker images
 ## [1.0.0.25]
 - Deal with possible HA restart and username/password change. 
 ## [1.0.0.*]

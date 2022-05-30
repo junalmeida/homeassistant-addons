@@ -1,7 +1,7 @@
 name: deploy
 
 env:
-  BUILD_ARGS: ""
+  BUILD_ARGS: "--test"
   MONITORED_FILES: "config.yaml" # to deploy, set a new version number in config. # "build.yaml config.yaml Dockerfile rootfs src src/**/*.py"
 
 on:
@@ -112,7 +112,7 @@ jobs:
       - init
       - build
     runs-on: ubuntu-latest
-    if: needs.init.outputs.changed == 'true'
+    if: needs.init.outputs.changed == 'true' && github.ref == 'refs/heads/main'
     name: Create release for ${{ matrix.addon }} add-on
     strategy:
       matrix:
