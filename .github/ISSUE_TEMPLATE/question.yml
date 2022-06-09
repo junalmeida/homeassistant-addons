@@ -1,4 +1,4 @@
-name: Bug Report
+name: Question
 description: Ask a question
 title: "[Question]: "
 labels: ["question"]
@@ -19,7 +19,7 @@ body:
       required: true
 
   - type: input
-    id: version
+    id: addon-version
     attributes:
       label: AddOn and Version
       description: What add-on and version are you running?
@@ -28,7 +28,7 @@ body:
       required: true
 
   - type: input
-    id: version
+    id: homeassistant-version
     attributes:
       label: HomeAssistant Version
       description: What version of homeassistant are you running?
