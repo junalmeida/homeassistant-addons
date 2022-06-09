@@ -26,14 +26,17 @@ def supervisor(param: str):
             time.sleep(5)
 def version() -> str:
     try:
-        supervisor_auth = {
-            "Authorization": "Bearer %s" % os.environ['SUPERVISOR_TOKEN']
-        }
+        if "SUPERVISOR_TOKEN" in os.environ:
+            supervisor_auth = {
+                "Authorization": "Bearer %s" % os.environ['SUPERVISOR_TOKEN']
+            }
 
-        result = requests.get(supervisor_api % ("addons/self/info"), headers=supervisor_auth)
-        result_json = result.json()
-        result_json = result_json["data"] if "data" in result_json else result_json
-        return result_json["version"] if "version" in result_json else "0.0.0.0"
+            result = requests.get(supervisor_api % ("addons/self/info"), headers=supervisor_auth)
+            result_json = result.json()
+            result_json = result_json["data"] if "data" in result_json else result_json
+            return result_json["version"] if "version" in result_json else "0.0.0.0"
+        else:
+            return "0.0.0.0"
     except Exception as e:
         _LOGGER.error("Could not connect to supervisor: %s" % e)
         return "0.0.0.0"

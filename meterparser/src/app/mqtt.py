@@ -5,6 +5,7 @@ import traceback
 import paho.mqtt.client as mqtt
 import os
 import threading
+from urllib.parse import urlparse
 
 from slugify import slugify
 from app.ha_api import supervisor, version
@@ -18,6 +19,7 @@ class Mqtt (threading.Thread):
         threading.Thread.__init__(self)
         self._wait = threading.Event()
         self.version = version()
+        self._mqtt_config = {}
         self._mqtt_client = mqtt.Client("meter-parser-addon")
         self._mqtt_client.on_connect = self.mqtt_connected
         self._mqtt_client.on_disconnect = self.mqtt_disconnected
@@ -42,15 +44,24 @@ class Mqtt (threading.Thread):
             self.check_auth()
 
     def check_auth(self):
-        if "mqtt" in config and "host" in config["mqtt"]:
-            self._mqtt_config = config["mqtt"]
-        else:    
+        if "mqtt_url" in config:
+            mqtt_url = urlparse(config["mqtt_url"])
+            self._mqtt_config = {
+                "username": mqtt_url.username,
+                "password": mqtt_url.password,
+                "host": mqtt_url.hostname,
+                "port": mqtt_url.port if mqtt_url.port is not None else 1883
+            }
+        else:
             self._mqtt_config = supervisor("mqtt")
+            
         username = str(self._mqtt_config["username"])
         password = str(self._mqtt_config["password"])
-        self._mqtt_client.username_pw_set(username=username,password=password)
         host = str(self._mqtt_config["host"])
         port = int(self._mqtt_config["port"])
+
+        self._mqtt_client.username_pw_set(username=username,password=password)
+            
         if self._mqtt_client._host is not None and (self._mqtt_client._host != host or self._mqtt_client._port != port):
             self._mqtt_client.connect_async(host, port)
 
