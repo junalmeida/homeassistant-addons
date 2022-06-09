@@ -1,6 +1,8 @@
 
 import os
+from pydoc import allmethods
 import time
+
 import cv2
 import numpy as np
 import math
@@ -18,7 +20,7 @@ class Marker:
     center: tuple[int, int]
     angle: int
 
-def prepare_image(image, entity_id:str, send_image, debug_path: str):
+def prepare_image(image, entity_id:str, send_image, debug_path: str, first_aruco: int, second_aruco: int):
     debugfile = time.strftime(entity_id + "-%Y-%m-%d_%H-%M-%S")
 
     image = automatic_brightness_and_contrast(image)[0]
@@ -27,33 +29,26 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
 
     if send_image is not None:
         send_image(image_to_aruco)
-    (corners, ids, rejected) = cv2.aruco.detectMarkers(
-        image_to_aruco, arucoDict, parameters=arucoParams
-    )
 
-    markers = list[Marker]()
-    if len(corners) == 2:
+    markers = get_markers(image_to_aruco, first_aruco, second_aruco)
+
+    if len(markers) == 2:
         if debug_path is not None:
             cv2.imwrite(os.path.join(debug_path, "%s-aruco-in.jpg" % debugfile), image_to_aruco)
-        for (markerCorner, markerID) in zip(corners, ids):
-            marker = extractMarker(markerCorner, markerID[0])
-            markers.append(marker)
+
         avg_angle = sum(int(item.angle) for item in markers) / len(markers)
         if avg_angle != 0:
             image = rotate_image(image, -avg_angle)
 
         image_to_aruco = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        (corners, ids, rejected) = cv2.aruco.detectMarkers(
-            image_to_aruco, arucoDict, parameters=arucoParams
-        )
-        if len(corners) < 2:
+
+        markers = get_markers(image_to_aruco, first_aruco, second_aruco)
+        if len(markers) < 2:
             if send_image is not None:
                 send_image(image_to_aruco)
             raise Exception("Could not find the same markers after rotating the image. This is usually a very bad quality image.")
-        markers = list[Marker]()
-        for (markerCorner, markerID) in zip(corners, ids):
-            marker = extractMarker(markerCorner, markerID[0])
-            markers.append(marker)
+
+        for marker in markers:
             # draw the bounding box of the ArUCo detection
             cv2.line(image, marker.topLeft, marker.topRight, (0, 255, 0), 2)
             cv2.line(image, marker.topRight, marker.bottomRight, (0, 255, 0), 2)
@@ -61,14 +56,11 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
             cv2.line(image, marker.bottomLeft, marker.topLeft, (0, 255, 0), 2)
             cX = int((marker.topLeft[0] + marker.bottomRight[0]) / 2.0)
             cY = int((marker.topLeft[1] + marker.bottomRight[1]) / 2.0)
-            cv2.putText(image, str(markerID),
+            cv2.putText(image, str(marker.id),
                         (cX - 15, cY + 15),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.8, (0, 255, 0), 2)
             cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-        markers.sort(key=lambda x: x.id)
-        if markers[0].id == markers[1].id: 
-            raise Exception("The ArUco markers found have the same id. Please use different ids and stick to the top-left and bottom-right corners of the region of interest, respecting the id order.")
         topLeft = markers[0].bottomRight
         bottomRight = markers[1].topLeft
         if send_image is not None:
@@ -79,20 +71,6 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
         image = crop_image(image, (topLeft[0], topLeft[1], bottomRight[0] - topLeft[0], bottomRight[1] - topLeft[1]))
 
     else:
-        for ix, rejected in enumerate(rejected):
-            marker = extractMarker(rejected, ix)
-            # draw the bounding box of the ArUCo detection
-            cv2.line(image_to_aruco, marker.topLeft, marker.topRight, (0, 0, 255), 2)
-            cv2.line(image_to_aruco, marker.topRight, marker.bottomRight, (0, 0, 255), 2)
-            cv2.line(image_to_aruco, marker.bottomRight, marker.bottomLeft, (0, 0, 255), 2)
-            cv2.line(image_to_aruco, marker.bottomLeft, marker.topLeft, (0, 0, 255), 2)
-            cX = int((marker.topLeft[0] + marker.bottomRight[0]) / 2.0)
-            cY = int((marker.topLeft[1] + marker.bottomRight[1]) / 2.0)
-            cv2.putText(image_to_aruco, "rejected",
-                        (cX - 15, cY + 15),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.8, (0, 255, 0), 2)
-            cv2.circle(image_to_aruco, (cX, cY), 4, (0, 0, 255), -1)
         if send_image is not None:
             send_image(image_to_aruco)
         if debug_path is not None:
@@ -101,8 +79,27 @@ def prepare_image(image, entity_id:str, send_image, debug_path: str):
 
     return image
 
+def get_markers(image, first_aruco: int, second_aruco: int):
+    (corners, ids, _) = cv2.aruco.detectMarkers(
+        image, arucoDict, parameters=arucoParams
+    )
+    markers = list[Marker]()
+    if corners is None or ids is None or len(ids) == 0:
+        return markers # exit with empty list
 
-def extractMarker(markerCorner, markerID: int):
+    for (markerCorner, markerID) in zip(corners, ids): 
+        marker = extract_one_marker(markerCorner, markerID[0])
+        markers.append(marker)
+    if (first_aruco is not None and second_aruco is not None and first_aruco != second_aruco):
+        markers = [item for item in markers if item.id == first_aruco or item.id == second_aruco]
+    markers.sort(key=lambda x: x.id)
+
+    if len(markers) == 2 and markers[0].id == markers[1].id: 
+        raise Exception("The ArUco markers found have the same id. Please use different ids and stick to the top-left and bottom-right corners of the region of interest, respecting the id order.")
+
+    return markers
+    
+def extract_one_marker(markerCorner, markerID: int):
     # extract the marker corners (which are always returned in
     # top-left, top-right, bottom-right, and bottom-left order)
     corners = markerCorner.reshape((4, 2))

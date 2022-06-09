@@ -11,6 +11,8 @@ This repository is under alpha stage, so expect bugs and breaking changes.
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]  
 
+Please consider sponsoring if you feel that this project is somehow useful to you. 
+
 
 ### Highlights of what **Meter Parser** can do
 

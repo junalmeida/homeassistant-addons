@@ -8,7 +8,7 @@
             "name": "Python",
             "type": "python",
             "request": "launch",
-            "program": "${fileDirname}",
+            "program": "${workspaceFolder}/meterparser/src",
             "console": "integratedTerminal"
         }
     ]

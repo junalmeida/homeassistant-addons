@@ -33,6 +33,8 @@ cameras:
   decimals: 1 # optional number of decimals
   device_class: water # energy, gas or water
   unit_of_measurement: m³ # m³, ft³, kWh, MWh, Wh, gal, L
+  first_aruco: 2 # optionally select an specific aruco marker, useful if you have two counters on the same camera
+  second_aruco: 3
 
 - snapshot_url: http://192.168.100.154/snapshot.jpg
   name: Gas Meter
@@ -48,11 +50,7 @@ cameras:
   device_class: gas # energy, gas or water
   unit_of_measurement: m³ # m³, ft³, kWh, MWh, Wh, gal, L
 
-mqtt: # or mqtt: {} when automatically handled by home assistant
-  host: hostname
-  username: johndoe
-  password: verysecurepwd
-  port: 1883
+mqtt_url: "mqtt://johndoe:securepassword@hostname.local:1883" # optional when automatically handled by home assistant
 
 log_level: INFO # DEBUG, INFO, WARN, ERROR
 ``` 
@@ -71,3 +69,5 @@ data:
 File an issue in this Github Repository, add logs and if possible an image of your meter. Please redact sensitive information.
 
 I also appreciate if you share the camera device specs and light conditions.
+
+Please consider sponsoring if you feel that this project is somehow useful to you. 

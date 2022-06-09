@@ -1,0 +1,43 @@
+name: Bug Report
+description: Ask a question
+title: "[Question]: "
+labels: ["question"]
+assignees:
+  - junalmeida
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time using this project. Please consider sponsoring if you feel that this project is somehow useful to you.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Ask your question
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: AddOn and Version
+      description: What add-on and version are you running?
+      value: "meterparser-x.x.x.x"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: HomeAssistant Version
+      description: What version of homeassistant are you running?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output.
+      render: shell

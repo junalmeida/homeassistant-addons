@@ -1,13 +1,14 @@
 
+import io
 import json
 import logging
+import os
 import threading
 import time
+from urllib.parse import urlparse
 import requests
 import numpy as np
 import cv2
-import traceback
-import base64
 from slugify import slugify
 from app.mqtt import Mqtt
 from app.data import data
@@ -15,9 +16,10 @@ from app.parsers.image_utils import prepare_image
 from app.parsers.parser_dial import parse_dials
 from app.parsers.parser_digits_ocr_space import parse_digits_ocr_space
 from app.parsers.parser_digits_gvision import parse_digits_gvision
-import math
 from skimage.metrics import structural_similarity as compare_ssim
-
+import subprocess
+import tempfile
+ffmpeg = "/usr/local/bin/ffmpeg"
 
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
@@ -49,6 +51,8 @@ class Camera (threading.Thread):
         self._mqtt = mqtt
         self._debug_path = debug_path
         self._previous_image = None
+        self._first_aruco = int(camera["first_aruco"]) if "first_aruco" in camera else None
+        self._second_aruco = int(camera["second_aruco"]) if "second_aruco" in camera else None
         if self._digits == 0 and len(self._dials) == 0:
             raise Exception(
                 "Incorrect setup. Set this camera to use either digits or dials.")
@@ -81,7 +85,7 @@ class Camera (threading.Thread):
                         self.send_image(img)
 
                         img = prepare_image(
-                            img, self.entity_id, self.send_image, self._debug_path)
+                            img, self.entity_id, self.send_image, self._debug_path, self._first_aruco, self._second_aruco)
                         self.send_image(img)
 
                     except Exception as e:
@@ -108,7 +112,7 @@ class Camera (threading.Thread):
                     if score > 0.93:
                         should_process = False
                         self._logger.debug(
-                            "Previous and current images have %d percent of simmilarity, so not wasting an OCR call." % score)
+                            "Previous and current images have %d%% of simmilarity, so not wasting an OCR call." % (score * 100))
 
                 if should_process:
                     self._previous_image = img.copy()
@@ -191,15 +195,39 @@ class Camera (threading.Thread):
         self._disposed = True
 
     def get_image(self):
-        # TODO: get image from video stream
-        req = requests.get(self._snapshot_url, stream=True)
-        if req.status_code == 200:
-            stream = req.raw
-            arr = np.asarray(bytearray(stream.read()), dtype=np.uint8)
-            img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)  # 'Load it as it is'
-            return img
+        url = urlparse(self._snapshot_url)
+        if (url.scheme.startswith("http")):
+            # get image from http/s request
+            req = requests.get(self._snapshot_url, stream=True)
+            if req.status_code == 200:
+                stream = req.raw
+                arr = np.asarray(bytearray(stream.read()), dtype=np.uint8)
+                img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)  # 'Load it as it is'
+                return img
+            else:
+                raise Exception(req.text)
         else:
-            raise Exception(req.text)
+            # everything else, try ffmpeg
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_file_name = os.path.join(tmp_dir, "img.jpg")
+                ffmpeg_cmd = [
+                    ffmpeg,
+                    "-y", 
+                    "-i", self._snapshot_url, 
+                    "-ss", "1",
+                    "-frames:v", "1",
+                    tmp_file_name
+                ]
+                result = subprocess.run(ffmpeg_cmd, timeout=15) # fail after 15 secs
+
+                if result.returncode == 0:
+                    self._logger.debug("FFmpeg Script Ran Successfully")
+                    with io.open(tmp_file_name) as tmp_file:
+                        arr = np.fromfile(tmp_file_name)
+                    img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)  # 'Load it as it is'
+                    return img
+                else:
+                    raise Exception(f"An error has ocurred while reading ffmpeg (exitcode={result.returncode}). Check snapshot_url parameter.")
 
     def send_image(self, image):
         ret_code, jpg_buffer = cv2.imencode(

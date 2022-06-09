@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.1.0]
+- Set an specific aruco marker number so you can add multiple counters using the same camera
+- Move custom mqtt setting to a single url (breaking change)
+- If url schema is not http(s), try get an image using ffmpeg
 ## [1.0.0.28]
 - Adjust time limit for camera scan interval 
 - Update base docker images
