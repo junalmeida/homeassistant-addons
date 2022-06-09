@@ -1,15 +1,17 @@
 # Changelog
 
-## [1.0.1.0]
+### [1.0.1.1]
+- Fix incorrect mqtt_url default
+### [1.0.1.0]
 - Set an specific aruco marker number so you can add multiple counters using the same camera
 - Move custom mqtt setting to a single url (breaking change)
 - If url schema is not http(s), try get an image using ffmpeg
-## [1.0.0.28]
+### [1.0.0.28]
 - Adjust time limit for camera scan interval 
 - Update base docker images
-## [1.0.0.25]
+### [1.0.0.25]
 - Deal with possible HA restart and username/password change. 
-## [1.0.0.*]
+### [1.0.0.*]
 - Make a lower limit so device won't be unavailable
 - Easier to read log messages
 - Tune limits and fail safe OCR readings

@@ -44,7 +44,7 @@ class Mqtt (threading.Thread):
             self.check_auth()
 
     def check_auth(self):
-        if "mqtt_url" in config:
+        if "mqtt_url" in config and config["mqtt_url"] is not None and config["mqtt_url"] != "":
             mqtt_url = urlparse(config["mqtt_url"])
             self._mqtt_config = {
                 "username": mqtt_url.username,

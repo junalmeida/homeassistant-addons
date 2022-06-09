@@ -1,5 +1,5 @@
 name: Meter Parser
-version: 1.0.1.0
+version: 1.0.1.1
 slug: meter-parser
 description: Read meter needles and numbers from a camera snapshot.
 url: https://github.com/junalmeida/homeassistant-addons/tree/main/meterparser
@@ -14,7 +14,6 @@ arch:
   - armv7
   - i386
 options:
-  mqtt_url: "mqtt://auto_username:auto_password@auto_hostname"
   cameras:
     - snapshot_url: http://192.168.100.153/snapshot.jpg
       name: Water Meter
