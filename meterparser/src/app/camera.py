@@ -157,9 +157,9 @@ class Camera (threading.Thread):
                         data[self.entity_id] = self._current_reading
 
                         self._error_count = 0
-                    elif reading > 0 and reading >= lower_limit:
+                    elif reading > 0 and reading >= lower_limit and reading < self._current_reading:
                         # if reading is close to last reading (see self.reading_limit), let's send again last reading so
-                        # it won't be available by a small amount of difference.
+                        # it won't be available by a small amount of difference like decimals).
                         self._logger.info("Close reading - current=%s, previous=%s, limit=%s, not updating." % (
                             reading, self._current_reading, upper_limit))
                         self._error_count = 0
