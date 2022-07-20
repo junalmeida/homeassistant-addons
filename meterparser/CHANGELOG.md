@@ -1,5 +1,6 @@
 # Changelog
-
+### [1.0.1.2]
+- Fix incorrect error message
 ### [1.0.1.1]
 - Fix incorrect mqtt_url default
 ### [1.0.1.0]
