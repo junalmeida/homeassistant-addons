@@ -1,4 +1,6 @@
-# Changelog
+### [1.0.1.4]
+
+- Add `device_class` to water meter sensor.
 
 ### [1.0.1.3]
 
