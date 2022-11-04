@@ -125,21 +125,31 @@ def angle_between(p1: tuple[int, int], p2: tuple[int, int]) -> float:  # tuple[x
     (p2x, p2y) = p2
     return math.degrees(math.atan2(p2y-p1y, p2x-p1x))
 
-def rotate_image(image, angle, center=None, scale=1.0):
-    # grab the dimensions of the image
-    (h, w) = image.shape[:2]
+def rotate_image(image, angle):
+    """
+    Rotates an image (angle in degrees) and expands image to avoid cropping
+    """
 
-    # if the center is None, initialize it as the center of
-    # the image
-    if center is None:
-        center = (w // 2, h // 2)
+    height, width = image.shape[:2] # image shape has 3 dimensions
+    image_center = (width/2, height/2) # getRotationMatrix2D needs coordinates in reverse order (width, height) compared to shape
 
-    # perform the rotation
-    matrix = cv2.getRotationMatrix2D(center, -angle, scale)
-    rotated = cv2.warpAffine(image, matrix, (w, h), flags=cv2.INTER_NEAREST)
+    rotation_mat = cv2.getRotationMatrix2D(image_center, -angle, 1.)
 
-    # return the rotated image
-    return rotated
+    # rotation calculates the cos and sin, taking absolutes of those.
+    abs_cos = abs(rotation_mat[0,0]) 
+    abs_sin = abs(rotation_mat[0,1])
+
+    # find the new width and height bounds
+    bound_w = int(height * abs_sin + width * abs_cos)
+    bound_h = int(height * abs_cos + width * abs_sin)
+
+    # subtract old image center (bringing image back to origo) and adding the new image center coordinates
+    rotation_mat[0, 2] += bound_w/2 - image_center[0]
+    rotation_mat[1, 2] += bound_h/2 - image_center[1]
+
+    # rotate image with the new bounds and translated rotation matrix
+    rotated_mat = cv2.warpAffine(image, rotation_mat, (bound_w, bound_h), flags=cv2.INTER_NEAREST)
+    return rotated_mat
 
 
 def crop_image(image, rect):
