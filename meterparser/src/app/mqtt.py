@@ -124,8 +124,7 @@ class Mqtt (threading.Thread):
             "unique_id": "%s_%s" % (self.device_id, entity_id),
             "device": self.device
         }
-        if device_class != "water":
-            payload_sensor["device_class"] = device_class
+        payload_sensor["device_class"] = device_class
 
 
         topic_camera = "%s/camera/%s/%s/config" % (discovery_prefix, self.device_id, entity_id)
