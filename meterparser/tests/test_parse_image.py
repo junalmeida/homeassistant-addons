@@ -7,15 +7,15 @@ from src.app.parsers.parser_digits_gvision import parse_digits_gvision
 from src.app.parsers.image_utils import crop_image, rotate_image
 
 from .config import config
-ocr_space_key = config["cameras"][0]["ocr_space_key"]
-ocr_gvision_key = config["cameras"][0]["ocr_gvision_key"]
+ocr_space_key = config["cameras"][0]["ocr_space_key"] if "ocr_space_key" in config["cameras"][0] else None
+ocr_gvision_key = config["cameras"][0]["ocr_gvision_key"] if "ocr_gvision_key" in config["cameras"][0] else None
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "results")
 
 
 def test_electricity_dials_1(request):
     samplepath = os.path.join(os.path.dirname(__file__),  "images", 'sample_electricity-1.jpg')
     inputFrame = cv2.imread(samplepath)
-    reading = parse_dials(inputFrame, ["CCW", "CW", "CCW", "CW"], 0, request.node.name, minDiameter=150, maxDiameter=340, debug_path=dir_path)
+    reading = parse_dials(inputFrame, ["CCW", "CW", "CCW", "CW"], 0, request.node.name, minDiameter=300, maxDiameter=400, debug_path=dir_path)
     assert reading == 3124
 
 
@@ -64,8 +64,8 @@ def test_water_dial_2(request):
 def test_water_dial_3(request):
     samplepath = os.path.join(os.path.dirname(__file__), "images",  'sample_water-3.jpg')
     inputFrame = cv2.imread(samplepath)
-    reading = parse_dials(inputFrame, ["CW"], 0, request.node.name, minDiameter=1010, maxDiameter=1230, debug_path=dir_path)
-    assert reading == 5
+    reading = parse_dials(inputFrame, ["CW"], 0, request.node.name, minDiameter=530, maxDiameter=700, debug_path=dir_path)
+    assert reading == 0
 
 
 def test_water_digits_1(request):
@@ -74,8 +74,9 @@ def test_water_digits_1(request):
     inputFrame = crop_image(inputFrame, [179, 155, 194, 50])
     reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_space_key, request.node.name, debug_path=dir_path)
     assert reading == 2802.0
-    reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
-    assert reading == 2802.0
+    if ocr_gvision_key:
+        reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
+        assert reading == 2802.0
 
 
 def test_water_digits_2(request):
@@ -84,8 +85,9 @@ def test_water_digits_2(request):
     inputFrame = crop_image(inputFrame, [40, 144, 118, 50])
     reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_space_key, request.node.name, debug_path=dir_path)
     assert reading == 1.10
-    reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
-    assert reading == 1.10
+    if ocr_gvision_key:
+        reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
+        assert reading == 1.10
 
 
 def test_water_digits_3(request):
@@ -94,17 +96,19 @@ def test_water_digits_3(request):
     inputFrame = crop_image(inputFrame, [451, 414, 372, 133])
     reading = parse_digits_ocr_space(inputFrame, 6, 2, ocr_space_key, request.node.name, debug_path=dir_path)
     assert reading == 2.00
-    reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
-    assert reading == 2.00
+    if ocr_gvision_key:
+        reading = parse_digits_gvision(inputFrame, 6, 2, ocr_gvision_key, request.node.name, debug_path=dir_path)
+        assert reading == 2.00
 
 def test_water_rotate_crop(request):
     samplepath = os.path.join(os.path.dirname(__file__),  "images", 'sample_water-rotate.jpg')
     inputFrame = cv2.imread(samplepath)
     inputFrame = rotate_image(inputFrame, -121)
     cv2.imwrite(os.path.join(dir_path, "%s-rotate.jpg" % request.node.name), inputFrame)
-    inputFrame = crop_image(inputFrame, [365, 405, 160, 60])
-    reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
-    assert reading >= 2806.0 and reading <= 2806.9
+    inputFrame = crop_image(inputFrame, [450, 668, 160, 60])
+    if ocr_gvision_key:
+        reading = parse_digits_gvision(inputFrame, 6, 1, ocr_gvision_key, request.node.name, debug_path=dir_path)
+        assert reading >= 2806.0 and reading <= 2806.9
     reading = parse_digits_ocr_space(inputFrame, 6, 1, ocr_space_key, request.node.name, debug_path=dir_path)
     assert reading >= 2806.0 and reading <= 2806.9
 

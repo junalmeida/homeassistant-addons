@@ -1,18 +1,34 @@
 # Changelog
+
+### [1.0.1.3]
+
+- Expand image when rotating to re-read ArUco markers.
+
 ### [1.0.1.2]
+
 - Fix incorrect error message
+
 ### [1.0.1.1]
+
 - Fix incorrect mqtt_url default
+
 ### [1.0.1.0]
+
 - Set an specific aruco marker number so you can add multiple counters using the same camera
 - Move custom mqtt setting to a single url (breaking change)
 - If url schema is not http(s), try get an image using ffmpeg
+
 ### [1.0.0.28]
-- Adjust time limit for camera scan interval 
+
+- Adjust time limit for camera scan interval
 - Update base docker images
+
 ### [1.0.0.25]
-- Deal with possible HA restart and username/password change. 
+
+- Deal with possible HA restart and username/password change.
+
 ### [1.0.0.*]
+
 - Make a lower limit so device won't be unavailable
 - Easier to read log messages
 - Tune limits and fail safe OCR readings
@@ -28,6 +44,6 @@
 - Fix service type on devices
 - Fix incorrect variable name.
 - Save image to PNG for OCR.
-- Add `stdin` input to list and reset the control value. 
+- Add `stdin` input to list and reset the control value.
 - Fix code errors and error messages.
 - Initial version.
