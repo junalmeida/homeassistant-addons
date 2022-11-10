@@ -239,12 +239,17 @@ class Camera (threading.Thread):
     def set_callback(self, client, userdata, message):
         try:
             message = json.loads(message.payload.decode("utf-8"))
-            if message is not None and "value" in message and str(message["value"]).isnumeric():
-                self._current_reading = float(message["value"])
-                self._logger.info("Resetting %s (%s) to %d" % (
-                    self.name, self.entity_id, self._current_reading))
-                data[self.entity_id] = self._current_reading
+            if message is not None and "value" in message:
+                self.reset(float(str(message["value"])))
+            elif message is not None:
+                self.reset(float(str(message)))
             else:
                 self._logger.error("Invalid payload %s" % message)
         except Exception as e:
             self._logger.error("Invalid payload %s" % e)
+
+    def reset(self, value: float):
+        self._current_reading = value
+        self._logger.info("Resetting %s (%s) to %d" % (
+            self.name, self.entity_id, self._current_reading))
+        data[self.entity_id] = self._current_reading

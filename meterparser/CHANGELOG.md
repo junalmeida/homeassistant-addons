@@ -1,3 +1,8 @@
+### [1.0.1.5]
+
+- Accept decimal values on meter reset command.
+- Fix deprecated calls in build action.
+
 ### [1.0.1.4]
 
 - Add `device_class` to water meter sensor.
