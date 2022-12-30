@@ -92,17 +92,19 @@ def parse_result(
         for x_str in array:
             # replace common ocr mistakes
             x_str = (
-                x_str.replace(" ", "")
-                .replace(".", "")
-                .replace(",", "")
-                .replace("|", "")
-                .replace("/", "")
-                .replace("\\", "")
-                .replace("o", "0")
-                .replace("d", "0")
-                .replace("b", "0")
-                .replace("O", "0")
-                .replace("T", "1")
+                x_str
+                    .strip()
+                    .replace(" ", "")
+                    .replace(".", "")
+                    .replace(",", "")
+                    .replace("|", "")
+                    .replace("/", "")
+                    .replace("\\", "")
+                    .replace("o", "0")
+                    .replace("d", "0")
+                    .replace("b", "0")
+                    .replace("O", "0")
+                    .replace("T", "1")
             )
             regex = re.findall("[0-9]{%s}" %
                                (digits_count), x_str, overlapped=True)
