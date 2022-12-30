@@ -71,6 +71,9 @@ class Camera (threading.Thread):
         self._logger.info("Listening to messages at topic %s" % (topic_listen))
         while not self._wait.is_set():
             try:
+                self._mqtt.mqtt_device_trigger_discovery(self.entity_id, "on_before_get_image")
+                self._mqtt.mqtt_device_trigger_discovery(self.entity_id, "on_after_get_image")
+
                 self._mqtt.mqtt_sensor_discovery(
                     self.entity_id, self.name, self._device_class, self._unit_of_measurement)
                 self._mqtt.mqtt_set_availability(
@@ -197,8 +200,16 @@ class Camera (threading.Thread):
     def get_image(self):
         url = urlparse(self._snapshot_url)
         if (url.scheme.startswith("http")):
+            # turn flash on
+            self._mqtt.on_before_get_image(self.entity_id)
+            time.sleep(0.2)
+                
             # get image from http/s request
-            req = requests.get(self._snapshot_url, stream=True)
+            try:
+                req = requests.get(self._snapshot_url, stream=True)
+            finally:
+                self._mqtt.on_after_get_image(self.entity_id)
+
             if req.status_code == 200:
                 stream = req.raw
                 arr = np.asarray(bytearray(stream.read()), dtype=np.uint8)
@@ -218,8 +229,13 @@ class Camera (threading.Thread):
                     "-frames:v", "1",
                     tmp_file_name
                 ]
-                result = subprocess.run(ffmpeg_cmd, timeout=15) # fail after 15 secs
-
+                self._mqtt.on_before_get_image(self.entity_id)
+                time.sleep(0.2)
+                try:
+                    result = subprocess.run(ffmpeg_cmd, timeout=15) # fail after 15 secs
+                finally:
+                    self._mqtt.on_after_get_image(self.entity_id)
+                    
                 if result.returncode == 0:
                     self._logger.debug("FFmpeg Script Ran Successfully")
                     with io.open(tmp_file_name) as tmp_file:

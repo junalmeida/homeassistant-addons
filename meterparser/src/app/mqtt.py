@@ -21,10 +21,10 @@ class Mqtt (threading.Thread):
         self.version = version()
         self._mqtt_config = {}
         self._mqtt_client = mqtt.Client("meter-parser-addon")
-        self._mqtt_client.on_connect = self.mqtt_connected
-        self._mqtt_client.on_disconnect = self.mqtt_disconnected
-        self._mqtt_client.on_publish = self.mqtt_publish
-        self._mqtt_client.on_connect_fail = self.mqtt_connection_failed
+        self._mqtt_client.on_connect = self._mqtt_connected
+        self._mqtt_client.on_disconnect = self._mqtt_disconnected
+        self._mqtt_client.on_publish = self._mqtt_publish
+        self._mqtt_client.on_connect_fail = self._mqtt_connection_failed
 
         self.cameras: list = list()
         self.device_id = slugify((os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]).lower())
@@ -65,7 +65,7 @@ class Mqtt (threading.Thread):
         if self._mqtt_client._host is not None and (self._mqtt_client._host != host or self._mqtt_client._port != port):
             self._mqtt_client.connect_async(host, port)
 
-    def mqtt_connected(self, client, userdata, flags, rc):
+    def _mqtt_connected(self, client, userdata, flags, rc):
         # spawn camera threads
         from app.camera import Camera
         for cfg in config["cameras"]:
@@ -82,15 +82,15 @@ class Mqtt (threading.Thread):
         self._mqtt_client.disconnect()
         self._mqtt_client.loop_stop(force=True)
 
-    def mqtt_disconnected(self, client, userdata, rc):        
+    def _mqtt_disconnected(self, client, userdata, rc):        
         if not self._mqtt_client.is_connected():
             for camera in self.cameras:
                 camera.stop()
             self.cameras.clear()
             _LOGGER.debug("%s camera(s) running" % len(self.cameras))    
-    def mqtt_publish(self, client, userdata, mid):
+    def _mqtt_publish(self, client, userdata, mid):
         _LOGGER.debug("Message #%s delivered to %s" % (mid, client._host))
-    def mqtt_connection_failed(self, client, userdata):        
+    def _mqtt_connection_failed(self, client, userdata):        
         _LOGGER.error("Connection to mqtt has failed: #%s - %s" % (client, userdata))
     def mqtt_start(self):
         self.start()
@@ -104,6 +104,18 @@ class Mqtt (threading.Thread):
             except Exception as e:
                 _LOGGER.error("Could not connect to mqtt: %s. Retry in 5 secs." % e)
                 time.sleep(5)
+
+    def mqtt_device_trigger_discovery(self, entity_id: str, command: str):
+        payload = {
+            "automation_type": "trigger",
+            "type": command,
+            "subtype": entity_id,
+            "topic": "%s/trigger/%s/%s/%s" % (discovery_prefix, self.device_id, entity_id, command),
+            "device": self.device
+        }
+        topic_config = "%s/device_automation/%s/action_%s_%s/config" % (discovery_prefix, self.device_id, entity_id, command)
+        self._mqtt_client.publish(topic_config, payload=json.dumps(payload), qos=2)
+
     def mqtt_sensor_discovery(self, entity_id: str, name: str, device_class: str, unit_of_measurement: str):
            
         topic_sensor = "%s/sensor/%s/%s/config" % (discovery_prefix, self.device_id, entity_id)
@@ -139,6 +151,14 @@ class Mqtt (threading.Thread):
 
         self._mqtt_client.publish(topic_sensor, payload=json.dumps(payload_sensor), qos=2)
         self._mqtt_client.publish(topic_camera, payload=json.dumps(payload_camera), qos=2)
+
+    def on_before_get_image(self, entity_id: str):
+        topic = "%s/trigger/%s/%s/%s" % (discovery_prefix, self.device_id, entity_id, "on_before_get_image")
+        self._mqtt_client.publish(topic, payload=entity_id, qos=2)
+
+    def on_after_get_image(self, entity_id: str):
+        topic = "%s/trigger/%s/%s/%s" % (discovery_prefix, self.device_id, entity_id, "on_after_get_image")
+        self._mqtt_client.publish(topic, payload=entity_id, qos=2)
 
     def mqtt_set_state(self, type:str, entity_id: str, state):
         topic = "%s/%s/%s/%s/state" % (discovery_prefix, type, self.device_id, entity_id)
