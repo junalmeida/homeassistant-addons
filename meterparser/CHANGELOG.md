@@ -1,3 +1,8 @@
+### [1.0.2.1]
+
+- Add a user setting for reading limits for error margins
+- Add trigger to run on and after getting images from the camera. Useful to turn a flash light on
+
 ### [1.0.1.5]
 
 - Accept decimal values on meter reset command.

@@ -26,7 +26,7 @@ class Camera (threading.Thread):
         threading.Thread.__init__(self)
         self.error_limit = 30
         # 3 m3? 3 kWh? 3 what? TODO: Check if this is a good fail safe parameter.
-        self.reading_limit = 3
+        self.reading_limit = int(camera["reading_limit"]) if "reading_limit" in camera else 3
         self._wait = threading.Event()
         self._interval = int(camera["interval"])
         self._snapshot_url = str(camera["snapshot_url"])
