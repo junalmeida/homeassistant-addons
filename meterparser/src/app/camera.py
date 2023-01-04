@@ -19,11 +19,12 @@ from app.parsers.parser_digits_gvision import parse_digits_gvision
 from skimage.metrics import structural_similarity as compare_ssim
 import subprocess
 import tempfile
-ffmpeg = "/usr/bin/ffmpeg"
+ffmpeg = "ffmpeg.exe" if os.name == "nt" else "/usr/bin/ffmpeg"
 
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):
         threading.Thread.__init__(self)
+        self.isRunning = False
         self.error_limit = 30
         # 3 m3? 3 kWh? 3 what? TODO: Check if this is a good fail safe parameter.
         self.reading_limit = int(camera["reading_limit"]) if "reading_limit" in camera else 3
@@ -35,7 +36,6 @@ class Camera (threading.Thread):
             camera["device_class"]) if "device_class" in camera else "energy"
         self._unit_of_measurement = str(
             camera["unit_of_measurement"]) if "unit_of_measurement" in camera else "kWh"
-        self._disposed = False
         self._current_reading = float(
             data[entity_id]) if entity_id in data else 0.0
         self._dials = camera["dials"] if "dials" in camera else []
@@ -71,6 +71,7 @@ class Camera (threading.Thread):
             "sensor", self.entity_id, self.set_callback)
         self._logger.info("Listening to messages at topic %s" % (topic_listen))
         while not self._wait.is_set():
+            self.isRunning = True
             try:
                 self._mqtt.mqtt_device_trigger_discovery(self.entity_id, "on_before_get_image")
                 self._mqtt.mqtt_device_trigger_discovery(self.entity_id, "on_after_get_image")
@@ -196,7 +197,7 @@ class Camera (threading.Thread):
                 "Waiting %s secs for next reading." % self._interval)
             self._wait.wait(self._interval)
         self._logger.warn("Camera %s is now disposed." % self.name)
-        self._disposed = True
+        self.isRunning = False
 
     def get_image(self):
         url = urlparse(self._snapshot_url)
@@ -224,21 +225,23 @@ class Camera (threading.Thread):
                 tmp_file_name = os.path.join(tmp_dir, "img.jpg")
                 ffmpeg_cmd = [
                     ffmpeg,
+                    "-hide_banner",
+                    "-loglevel", "error",
                     "-y", 
                     "-i", self._snapshot_url, 
-                    "-ss", "1",
+                    "-ss", "00:00:00.5",
                     "-frames:v", "1",
                     tmp_file_name
                 ]
                 self._mqtt.on_before_get_image(self.entity_id)
-                time.sleep(0.2)
+                time.sleep(0.3)
                 try:
                     result = subprocess.run(ffmpeg_cmd, timeout=15) # fail after 15 secs
                 finally:
                     self._mqtt.on_after_get_image(self.entity_id)
-                    
-                if result.returncode == 0:
-                    self._logger.debug("FFmpeg Script Ran Successfully")
+
+                if result is not None and result.returncode == 0:
+                    self._logger.debug("FFmpeg ran successfully")
                     with io.open(tmp_file_name) as tmp_file:
                         arr = np.fromfile(tmp_file_name)
                     img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)  # 'Load it as it is'

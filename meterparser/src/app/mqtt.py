@@ -26,7 +26,7 @@ class Mqtt (threading.Thread):
         self._mqtt_client.on_publish = self._mqtt_publish
         self._mqtt_client.on_connect_fail = self._mqtt_connection_failed
 
-        self.cameras: list = list()
+        self.cameras: list[threading.Thread] = list()
         self.device_id = slugify((os.environ["HOSTNAME"] if "HOSTNAME" in os.environ else os.environ["COMPUTERNAME"]).lower())
         self.device = {
                 "identifiers": self.device_id,
@@ -79,8 +79,13 @@ class Mqtt (threading.Thread):
     def mqtt_stop(self):
         for camera in self.cameras:
             camera.stop()
+        for camera in self.cameras:
+            if (camera.isRunning):
+                time.sleep(2)
+        self.cameras.clear()
         self._mqtt_client.disconnect()
         self._mqtt_client.loop_stop(force=True)
+        self.stop()
 
     def _mqtt_disconnected(self, client, userdata, rc):        
         if not self._mqtt_client.is_connected():
