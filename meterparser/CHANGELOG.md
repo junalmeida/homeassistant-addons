@@ -1,6 +1,7 @@
-### [1.0.2.2]
+### [1.0.2.3]
 
 - Fix incorrect ffmpeg path.
+- Add force_ffmpeg setting
 
 ### [1.0.2.1]
 

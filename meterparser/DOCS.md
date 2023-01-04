@@ -36,6 +36,8 @@ cameras:
     second_aruco: 3
 
   - snapshot_url: http://192.168.100.154/snapshot.jpg
+    force_ffmpg: False # Force use of ffmpeg on http urls (optional, default False)
+
     name: Gas Meter
     interval: 60 # seconds
     dials: # Add CW for Clockwise and CCW for Counter-clockwise dials. 1 line per dial
