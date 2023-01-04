@@ -1,5 +1,3 @@
-import time
-from app.camera import Camera
 from app.mqtt import Mqtt
 from app.service import Service
 import sys
