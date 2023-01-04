@@ -1,3 +1,7 @@
+### [1.0.2.4]
+
+- Reduce ffmpeg logs, reduce amount of time to seek for a snapshot
+
 ### [1.0.2.3]
 
 - Fix incorrect ffmpeg path.
