@@ -41,6 +41,7 @@ class Camera (threading.Thread):
         self._dials = camera["dials"] if "dials" in camera else []
         self._dial_size = int(
             camera["dial_size"]) if "dial_size" in camera else 100
+        self._force_ffmpeg = bool(camera["force_ffmpeg"]) if "force_ffmpeg" in camera else False
         self._digits = int(camera["digits"]) if "digits" in camera else 0
         self._decimals = int(camera["decimals"]) if "decimals" in camera else 0
         self._ocr_space_key = camera["ocr_space_key"] if "ocr_space_key" in camera else None
@@ -199,7 +200,7 @@ class Camera (threading.Thread):
 
     def get_image(self):
         url = urlparse(self._snapshot_url)
-        if (url.scheme.startswith("http")):
+        if (url.scheme.startswith("http") and not self._force_ffmpeg):
             # turn flash on
             self._mqtt.on_before_get_image(self.entity_id)
             time.sleep(0.2)
