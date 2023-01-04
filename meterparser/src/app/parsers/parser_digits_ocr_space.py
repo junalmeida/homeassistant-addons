@@ -22,6 +22,8 @@ import cv2
 import numpy as np
 import regex as re
 
+from .image_utils import image_resize
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -42,16 +44,26 @@ def parse_digits_ocr_space(
         cv2.imwrite(os.path.join(debug_path, "%s-in.jpg" % debugfile), image)
 
     reading = ocr_space(image, digits_count,
-                        decimals_count, ocr_key, entity_id)
+                        decimals_count, ocr_key, entity_id, engine = 2) # fastest
+    if reading == 0.0:
+        reading = ocr_space(image, digits_count,
+                            decimals_count, ocr_key, entity_id, engine = 5) # slower but better with bad images
     return reading
 
 
 URL_API = "https://api.ocr.space/parse/image"
 
 
-def ocr_space(frame, digits_count, decimals_count, ocr_key, entity_id):
+def ocr_space(frame, digits_count: int, decimals_count: int, ocr_key: str, entity_id : str, engine: int):
     payload = {"apikey": ocr_key, "language": "eng",
-               "scale": "true", "OCREngine": "2", "filetype": "PNG"}
+               "scale": "true", "OCREngine": str(engine), "filetype": "PNG"}
+
+    (fh, fw) = frame.shape[:2]
+
+    if (fh < 32):
+        frame = image_resize(frame, height = 32)
+    elif (fw < 32):
+        frame = image_resize(frame, width = 32)
 
     _LOGGER.debug("OCR image: %s, payload=%s" % (URL_API, payload))
     imencoded = cv2.imencode(".png", frame)[1]

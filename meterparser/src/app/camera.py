@@ -168,6 +168,9 @@ class Camera (threading.Thread):
                         self._logger.info("Close reading - current=%s, previous=%s, limit=%s, not updating." % (
                             reading, self._current_reading, upper_limit))
                         self._error_count = 0
+                    elif reading == 0:
+                        # not a valid OCR result already logged
+                        self._error_count += 1
                     else:
                         self._logger.error("Invalid reading - current=%s, previous=%s, limit=%s - Value could be too high or less than previous reading." % (
                             reading, self._current_reading, upper_limit))
