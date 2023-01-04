@@ -23,8 +23,8 @@ class Marker:
 def prepare_image(image, entity_id:str, send_image, debug_path: str, first_aruco: int, second_aruco: int):
     debugfile = time.strftime(entity_id + "-%Y-%m-%d_%H-%M-%S")
 
-    image = automatic_brightness_and_contrast(image)[0]
-    image = cv2.bilateralFilter(image,9,75,75)
+    # image = automatic_brightness_and_contrast(image)[0]
+    # image = cv2.bilateralFilter(image,9,75,75)
     image_to_aruco = image.copy()
 
     if send_image is not None:
@@ -204,3 +204,34 @@ def automatic_brightness_and_contrast(image, clip_hist_percent=1):
 
     auto_result = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
     return (auto_result, alpha, beta)
+
+def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
+    # initialize the dimensions of the image to be resized and
+    # grab the image size
+    dim = None
+    (h, w) = image.shape[:2]
+
+    # if both the width and height are None, then return the
+    # original image
+    if width is None and height is None:
+        return image
+
+    # check to see if the width is None
+    if width is None:
+        # calculate the ratio of the height and construct the
+        # dimensions
+        r = height / float(h)
+        dim = (int(w * r), height)
+
+    # otherwise, the height is None
+    else:
+        # calculate the ratio of the width and construct the
+        # dimensions
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    # resize the image
+    resized = cv2.resize(image, dim, interpolation = inter)
+
+    # return the resized image
+    return resized

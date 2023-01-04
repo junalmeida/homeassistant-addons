@@ -1,6 +1,7 @@
-### [1.0.2.4]
+### [1.0.2.5]
 
 - Reduce ffmpeg logs, reduce amount of time to seek for a snapshot
+- Improve ocr.space retry logic, add engine 5 as a fallback
 
 ### [1.0.2.3]
 
