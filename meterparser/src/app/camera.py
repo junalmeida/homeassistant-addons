@@ -19,7 +19,7 @@ from app.parsers.parser_digits_gvision import parse_digits_gvision
 from skimage.metrics import structural_similarity as compare_ssim
 import subprocess
 import tempfile
-ffmpeg = "/usr/local/bin/ffmpeg"
+ffmpeg = "/usr/bin/ffmpeg"
 
 class Camera (threading.Thread):
     def __init__(self, camera: dict, entity_id: str, mqtt: Mqtt, debug_path: str):

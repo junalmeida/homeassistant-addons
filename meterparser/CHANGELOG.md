@@ -1,3 +1,7 @@
+### [1.0.2.2]
+
+- Fix incorrect ffmpeg path.
+
 ### [1.0.2.1]
 
 - Add a user setting for reading limits for error margins
