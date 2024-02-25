@@ -1,3 +1,5 @@
+### [1.0.2.6]
+- Add armv7 support
 ### [1.0.2.5]
 
 - Reduce ffmpeg logs, reduce amount of time to seek for a snapshot
