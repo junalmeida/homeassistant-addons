@@ -21,7 +21,7 @@ jobs:
       changed: ${{ steps.changed_addons.outputs.changed }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3
 
       - name: Get changed files
         id: changed_files
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3
 
       - name: Get information
         id: info
@@ -89,7 +89,7 @@ jobs:
           fi
       - name: Login to GitHub Container Registry
         if: env.BUILD_ARGS != '--test'
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -102,7 +102,7 @@ jobs:
           args: |
             ${{ env.BUILD_ARGS }} \
             --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
+            --target /${{ matrix.addon }} \
             --image "${{ steps.check.outputs.image }}" \
             --docker-hub "ghcr.io/${{ github.repository_owner }}" \
             --addon
@@ -119,7 +119,7 @@ jobs:
         addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3
       - name: Get information
         id: info
         uses: home-assistant/actions/helpers/info@master
