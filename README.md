@@ -12,7 +12,9 @@ Please consider sponsoring if you feel that this repository is somehow useful to
 
 ## Reporting an Issue
 
-File an issue in this Github Repository, add logs and if possible an image of your meter. Please redact sensitive information.
+File an issue in the related add-on repository.
+
+* [Meter Parser](https://github.com/junalmeida/ha-addons-meterparser)
 
 [buymecoffee]: https://www.buymeacoffee.com/junalmeida
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange?style=plastic&logo=buymeacoffee

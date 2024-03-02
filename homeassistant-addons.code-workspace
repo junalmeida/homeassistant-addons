@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../ha-addons-meterparser"
+		}
+	],
+	"settings": {
+		"explorerExclude.backup": null
+	}
+}

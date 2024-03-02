@@ -9,35 +9,4 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report. Please consider sponsoring if you feel that this project is somehow useful to you.
-
-  - type: textarea
-    id: what-happened
-    attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen? I appreciate if you share the camera device specs, light conditions and an example of your meter if this is related to the meterparser addon.
-    validations:
-      required: true
-
-  - type: input
-    id: addon-version
-    attributes:
-      label: AddOn and Version
-      description: What add-on and version are you running?
-      value: "meterparser-x.x.x.x"
-    validations:
-      required: true
-
-  - type: input
-    id: homeassistant-version
-    attributes:
-      label: HomeAssistant Version
-      description: What version of homeassistant are you running?
-    validations:
-      required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. Remember to *redact any sensitive information*.
-      render: shell
+        Bug reports for add-ons can be reported on the respective add-on repository.
