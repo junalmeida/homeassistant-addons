@@ -1,10 +1,10 @@
 name: Meter Parser
-version: 1.0.2.6
+version: 1.0.2.7
 slug: meter-parser
 description: Read meter needles and numbers from a camera snapshot.
 url: https://github.com/junalmeida/ha-addons-meterparser
 init: false
-image: "ghcr.io/junalmeida/ha-meterparser-addon-{arch}"
+image: "ghcr.io/junalmeida/ha-addons-meterparser-{arch}"
 services:
   - "mqtt:need"
 arch:
