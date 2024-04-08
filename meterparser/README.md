@@ -1,5 +1,3 @@
-<img src="icon.png" align="right" width="128" />  
-
 # Home Assistant - Meter Parser AddOn
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] ![Checks][checksbadge]
 ![Last release][releasebadge] [^1]
