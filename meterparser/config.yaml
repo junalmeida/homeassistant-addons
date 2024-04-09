@@ -10,9 +10,9 @@ services:
 arch:
   - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
+  #- armhf
+  #- armv7
+  #- i386
 options:
   cameras:
     - snapshot_url: http://192.168.100.153/snapshot.jpg
