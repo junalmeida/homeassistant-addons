@@ -1,3 +1,6 @@
+### [1.0.2.9]
+- Fix missing hostname
+
 ### [1.0.2.8]
 - Add armv7 support
 ### [1.0.2.5]
