@@ -1,3 +1,5 @@
+<img src="./icon.png" align="right" width="60">  
+
 # Home Assistant - Meter Parser AddOn
 
 ## Installation through Supervisor
