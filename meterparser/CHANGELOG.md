@@ -1,3 +1,7 @@
+### [1.0.2.10]
+- Upgrade base image
+- Change checks for missing variables
+
 ### [1.0.2.9]
 - Fix missing hostname
 
