@@ -1,16 +1,14 @@
-<img src="./icon.png" align="right" width="60">  
-
 # Home Assistant - Meter Parser AddOn
 
-## Installation through Supervisor
+## How to install
 
 1. Add [https://github.com/junalmeida/homeassistant-addons](https://github.com/junalmeida/homeassistant-addons) as a custom
-   repository on supervisor repositories.
+   repository on Settings -> Add-ons -> Add-on Store -> Menu -> Repositories.
 2. Click install under "Meter Parser" in the Add-on Store.
 3. If you have native MQTT enabled, supervisor may provide configuration. Otherwise, setup mqtt host, port, user, and password.
 4. Setup the meter camera snapshot url, dials or digits. See the example below.
 5. Start the add-on
-6. Print two 4x4 ArUco markers (https://chev.me/arucogen/) and stick on the top-left and bottom-right (order is important) of the region of interest.
+6. Print two 4x4 ArUco markers (https://chev.me/arucogen/) of different numbers and stick on the top-left and bottom-right (order is important) of the region of interest.
 7. Check the logs add on and MQTT devices to see the last processed image and potential failures.
 
 ## Usage
