@@ -1,4 +1,4 @@
-<img src="./icon.png" align="right" width="60">  
+<img src="https://github.com/junalmeida/ha-addons-meterparser/raw/main/meterparser/icon.png" align="right" width="60">  
 
 # Home Assistant - Meter Parser AddOn
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] ![Checks][checksbadge]

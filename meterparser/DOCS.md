@@ -1,3 +1,5 @@
+<img src="https://github.com/junalmeida/ha-addons-meterparser/raw/main/meterparser/icon.png" align="right" width="60">  
+
 # Home Assistant - Meter Parser AddOn
 
 ## How to install

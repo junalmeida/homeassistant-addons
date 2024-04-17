@@ -1,3 +1,6 @@
+### [1.0.2.11]
+- Moving token from env vars to parameter
+
 ### [1.0.2.10]
 - Upgrade base image
 - Change checks for missing variables
