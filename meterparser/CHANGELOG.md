@@ -1,3 +1,6 @@
+### [1.0.3.0]
+- Change to official home assistant addon base
+
 ### [1.0.2.11]
 - Moving token from env vars to parameter
 
