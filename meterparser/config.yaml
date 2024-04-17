@@ -7,6 +7,7 @@ init: false
 image: "ghcr.io/junalmeida/ha-addons-meterparser-{arch}"
 
 hassio_api: true
+homeassistant_api: true
 
 services:
   - "mqtt:need"
