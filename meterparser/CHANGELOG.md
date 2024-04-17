@@ -1,3 +1,6 @@
+### [1.0.3.1]
+- Better log format
+
 ### [1.0.3.0]
 - Change to official home assistant addon base
 
